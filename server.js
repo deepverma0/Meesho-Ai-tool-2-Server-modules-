@@ -279,7 +279,7 @@ function enforceProductNameLength(name, targetLen = 150) {
 }
  // Padding uses generic SEO-friendly product sentences with rich keywords.
  
-function enforceDescriptionLength(desc, targetLen =700) {
+function enforceDescriptionLength(desc, targetLen =750) {
   if (!desc) return desc;
   if (desc.length >= targetLen) return desc.substring(0, targetLen);
   const additions = [
@@ -402,7 +402,7 @@ Packaging Dimensions: Realistic values based on product type and size
 
 Product Dimensions: Realistic values based on product type and size
 
-Description: EXACTLY 700 characters (use the FULL 700 character limit). Write a detailed, SEO-rich product description that includes:
+Description: EXACTLY 600 characters (use the FULL 600 character limit). Write a detailed, SEO-rich product description that includes:
 - Product name and type
 - Material and build quality
 - Key features and specifications (at least 7-10 bullet-style points written as sentences)
