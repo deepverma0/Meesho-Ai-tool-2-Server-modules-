@@ -56,6 +56,9 @@ if (!key.deviceId) {
 } else if (key.deviceId !== deviceId) {
   // allow re-login (overwrite old device)
   key.deviceId = deviceId;
+}  else {
+  // Different device → block
+  return { ok: false, error: "This license is already used on another device" };
 }
 
   const now = new Date();
