@@ -166,6 +166,98 @@ app.post('/validate-license', (req, res) => {
   });
 });
 
+app.post("/admin/generate-key", (req, res) => {
+  if (req.headers["x-admin-key"] !== ADMIN_KEY) {
+    return res.status(401).json({ success: false });
+  }
+
+  const { days = 30 } = req.body;
+
+  const db = loadDB();
+
+  const newKey = {
+    key: generateKey(),
+    expiry: new Date(Date.now() + days * 86400000).toISOString(),
+    deviceId: null,
+    createdAt: new Date().toISOString(),
+    lastUsed: null,
+    status: "active"
+  };
+
+  db.licenses.push(newKey);
+  saveDB(db);
+
+  res.json({ success: true, key: newKey });
+});
+app.get("/admin/licenses", (req, res) => {
+  if (req.headers["x-admin-key"] !== ADMIN_KEY) {
+    return res.status(401).json({ success: false });
+  }
+
+  const db = loadDB();
+  res.json({ success: true, licenses: db.licenses });
+});
+
+app.post("/admin/reset-device", (req, res) => {
+  const { licenseKey } = req.body;
+
+  const db = loadDB();
+  const key = db.licenses.find(k => k.key === licenseKey);
+
+  if (!key) return res.json({ success: false });
+
+  key.deviceId = null;
+  saveDB(db);
+
+  res.json({ success: true });
+});
+
+app.post("/admin/delete-license", (req, res) => {
+  const { licenseKey } = req.body;
+
+  const db = loadDB();
+  db.licenses = db.licenses.filter(k => k.key !== licenseKey);
+
+  saveDB(db);
+
+  res.json({ success: true });
+});
+
+app.post("/admin/extend-license", (req, res) => {
+  const { licenseKey, days } = req.body;
+
+  const db = loadDB();
+  const key = db.licenses.find(k => k.key === licenseKey);
+
+  if (!key) return res.json({ success: false });
+
+  const currentExpiry = new Date(key.expiry);
+  key.expiry = new Date(currentExpiry.getTime() + days * 86400000).toISOString();
+
+  saveDB(db);
+
+  res.json({ success: true, newExpiry: key.expiry });
+});
+
+app.post('/validate-license', (req, res) => {
+  const { licenseKey, deviceId } = req.body;
+
+  const db = loadDB();
+  const key = db.licenses.find(k => k.key === licenseKey);
+
+  if (!key) {
+    return res.json({ success: false, valid: false });
+  }
+
+  // device check here...
+
+  key.lastUsed = new Date().toISOString();
+
+  saveDB(db);
+
+  // return response
+});
+
 // ── Prompts ───────────────────────────────────────────────────────────────────
 const TEXT_SYSTEM_PROMPT = `
 You are a Meesho product listing expert. Given a product description, extract and generate structured listing fields.
