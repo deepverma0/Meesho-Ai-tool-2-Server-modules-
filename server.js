@@ -52,13 +52,11 @@ function validateLicenseCore(licenseKey, deviceId) {
   if (!key) return { ok: false, error: "Invalid key" };
 
 if (!key.deviceId) {
-  key.deviceId = deviceId;
-} else if (key.deviceId !== deviceId) {
-  // allow re-login (overwrite old device)
-  key.deviceId = deviceId;
-}  else {
-  // Different device → block
-  return { ok: false, error: "This license is already used on another device" };
+  key.deviceId = deviceId; // first login
+} else if (key.deviceId === deviceId) {
+  // same browser → allow relogin
+} else {
+  return { ok: false, error: "This license is already used in another browser" };
 }
 
   const now = new Date();
