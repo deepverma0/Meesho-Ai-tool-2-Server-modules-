@@ -75,20 +75,7 @@ if (!key.deviceId) {
 }
 
 app.post('/logout', (req, res) => {
-  const { licenseKey, deviceId } = req.body;
-
-  const db = loadDB();
-  const key = db.licenses.find(k => k.key === licenseKey);
-
-  if (!key) {
-    return res.json({ success: false });
-  }
-
-  if (key.deviceId === deviceId) {
-    key.deviceId = null;
-  }
-
-  saveDB(db);
+  // frontend logout only — DO NOT free device
   res.json({ success: true });
 });
 
@@ -110,6 +97,14 @@ function requireLicense(req, res, next) {
 /* ================== ADMIN ================== */
 const ADMIN_KEY = process.env.ADMIN_KEY || "admin";
 
+function checkAdmin(req, res) {
+  if (req.headers["x-admin-key"] !== ADMIN_KEY) {
+    res.status(401).json({ success: false });
+    return false;
+  }
+  return true;
+}
+
 app.post("/admin/generate-key", (req, res) => {
   if (req.headers["x-admin-key"] !== ADMIN_KEY) {
     return res.status(401).json({ success: false });
@@ -118,16 +113,31 @@ app.post("/admin/generate-key", (req, res) => {
   const { days = 30 } = req.body;
   const db = loadDB();
 
-  const newKey = {
-    key: generateKey(),
-    expiry: new Date(Date.now() + days * 86400000).toISOString(),
-    deviceId: null
-  };
+ const newKey = {
+  key: generateKey(),
+  expiry: new Date(Date.now() + days * 86400000).toISOString(),
+  deviceId: null,
+  createdAt: new Date().toISOString(),
+  lastUsed: null,
+  status: "active"
+};
 
   db.licenses.push(newKey);
   saveDB(db);
 
   res.json({ success: true, key: newKey });
+});
+
+app.get("/admin/stats", (req, res) => {
+  if (!checkAdmin(req, res)) return;
+  const db = loadDB();
+  const now = new Date();
+
+  const total = db.licenses.length;
+  const active = db.licenses.filter(k => new Date(k.expiry) > now).length;
+  const expired = total - active;
+
+  res.json({ total, active, expired });
 });
 
 app.post("/admin/login", (req, res) => {
@@ -141,54 +151,8 @@ app.post("/admin/login", (req, res) => {
 
   return res.status(401).json({ success: false });
 });
-app.post('/validate-license', (req, res) => {
-  const { licenseKey, deviceId } = req.body;
 
-  if (!licenseKey || !deviceId) {
-    return res.json({ success: false, valid: false, error: "Missing data" });
-  }
 
-  const result = validateLicenseCore(licenseKey, deviceId);
-
-  if (!result.ok) {
-    return res.json({ success: false, valid: false, error: result.error });
-  }
-
-  const expiryDate = new Date(result.expiry);
-  const now = new Date();
-  const remainingDays = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-
-  res.json({
-    success: true,
-    valid: true,
-    expiry: result.expiry,
-    remainingDays
-  });
-});
-
-app.post("/admin/generate-key", (req, res) => {
-  if (req.headers["x-admin-key"] !== ADMIN_KEY) {
-    return res.status(401).json({ success: false });
-  }
-
-  const { days = 30 } = req.body;
-
-  const db = loadDB();
-
-  const newKey = {
-    key: generateKey(),
-    expiry: new Date(Date.now() + days * 86400000).toISOString(),
-    deviceId: null,
-    createdAt: new Date().toISOString(),
-    lastUsed: null,
-    status: "active"
-  };
-
-  db.licenses.push(newKey);
-  saveDB(db);
-
-  res.json({ success: true, key: newKey });
-});
 app.get("/admin/licenses", (req, res) => {
   if (req.headers["x-admin-key"] !== ADMIN_KEY) {
     return res.status(401).json({ success: false });
@@ -199,6 +163,7 @@ app.get("/admin/licenses", (req, res) => {
 });
 
 app.post("/admin/reset-device", (req, res) => {
+  if (!checkAdmin(req, res)) return;
   const { licenseKey } = req.body;
 
   const db = loadDB();
@@ -213,6 +178,7 @@ app.post("/admin/reset-device", (req, res) => {
 });
 
 app.post("/admin/delete-license", (req, res) => {
+  if (!checkAdmin(req, res)) return;
   const { licenseKey } = req.body;
 
   const db = loadDB();
@@ -224,6 +190,7 @@ app.post("/admin/delete-license", (req, res) => {
 });
 
 app.post("/admin/extend-license", (req, res) => {
+  if (!checkAdmin(req, res)) return;
   const { licenseKey, days } = req.body;
 
   const db = loadDB();
@@ -242,20 +209,63 @@ app.post("/admin/extend-license", (req, res) => {
 app.post('/validate-license', (req, res) => {
   const { licenseKey, deviceId } = req.body;
 
+  if (!licenseKey || !deviceId) {
+    return res.json({ success: false, valid: false, error: "Missing data" });
+  }
+
   const db = loadDB();
   const key = db.licenses.find(k => k.key === licenseKey);
 
+  // 1️⃣ Check key exists
   if (!key) {
-    return res.json({ success: false, valid: false });
+    return res.json({ success: false, valid: false, error: "Invalid key" });
   }
 
-  // device check here...
+  // 2️⃣ Check status (ACTIVE / DISABLED)
+  if (key.status !== "active") {
+    return res.json({
+      success: false,
+      valid: false,
+      error: "License disabled"
+    });
+  }
 
+  // 3️⃣ ONE BROWSER LOCK
+  if (!key.deviceId) {
+    key.deviceId = deviceId;
+  } else if (key.deviceId !== deviceId) {
+    return res.json({
+      success: false,
+      valid: false,
+      error: "This license is already used in another browser"
+    });
+  }
+
+  // 4️⃣ EXPIRY CHECK
+  const now = new Date();
+  const expiry = new Date(key.expiry);
+
+  if (now > expiry) {
+    return res.json({
+      success: false,
+      valid: false,
+      error: "Expired"
+    });
+  }
+
+  // 5️⃣ TRACK USAGE
   key.lastUsed = new Date().toISOString();
-
   saveDB(db);
 
-  // return response
+  const remainingDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+
+  // 6️⃣ SUCCESS RESPONSE
+  res.json({
+    success: true,
+    valid: true,
+    expiry: key.expiry,
+    remainingDays
+  });
 });
 
 // ── Prompts ───────────────────────────────────────────────────────────────────
