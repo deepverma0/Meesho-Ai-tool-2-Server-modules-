@@ -51,10 +51,11 @@ function validateLicenseCore(licenseKey, deviceId) {
 
   if (!key) return { ok: false, error: "Invalid key" };
 
- if (!key.deviceId) {
+if (!key.deviceId) {
   key.deviceId = deviceId;
 } else if (key.deviceId !== deviceId) {
-  return { ok: false, error: "Device mismatch" };
+  // allow re-login (overwrite old device)
+  key.deviceId = deviceId;
 }
 
   const now = new Date();
@@ -71,6 +72,24 @@ function validateLicenseCore(licenseKey, deviceId) {
     expiry: key.expiry
   };
 }
+
+app.post('/logout', (req, res) => {
+  const { licenseKey, deviceId } = req.body;
+
+  const db = loadDB();
+  const key = db.licenses.find(k => k.key === licenseKey);
+
+  if (!key) {
+    return res.json({ success: false });
+  }
+
+  if (key.deviceId === deviceId) {
+    key.deviceId = null;
+  }
+
+  saveDB(db);
+  res.json({ success: true });
+});
 
 function requireLicense(req, res, next) {
   const { licenseKey, deviceId } = req.body;
