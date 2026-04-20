@@ -401,7 +401,7 @@ function enforceProductNameLength(name, targetLen = 150) {
 }
  // Padding uses generic SEO-friendly product sentences with rich keywords.
  
-function enforceDescriptionLength(desc, targetLen =750) {
+function enforceDescriptionLength(desc, targetLen =600) {
   if (!desc) return desc;
   if (desc.length >= targetLen) return desc.substring(0, targetLen);
   const additions = [
@@ -543,7 +543,7 @@ Description: EXACTLY 600 characters (use the FULL 600 character limit). Write a 
     * Occasion keywords (e.g. birthday gift, anniversary gift, wedding gift, Diwali, Holi, Raksha Bandhan)
     * Trending marketplace search terms relevant to the product category
 - NO brand names. NO non-compliance words (you, everyday, home, homes, house, premium, safe, guaranteed, best, top).
-- Must be exactly 700 characters — count carefully and pad with additional keyword-rich sentences if needed.
+- Must be exactly 600 characters — count carefully and pad with additional keyword-rich sentences if needed.
 
 For dropdown fields (type=select or type=dropdown): provide the most common valid option value that would appear in a Meesho dropdown (e.g. for Material: "Plastic", "Stainless Steel", "Cotton"; for Generic Name: the product type; for Net Quantity: "1"; for Packaging Unit: "cm" or "inch")
 
