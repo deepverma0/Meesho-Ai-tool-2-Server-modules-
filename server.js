@@ -488,15 +488,15 @@ FIXED VALUES — always use these exact values for matching fields:
 - Inventory / Stock: 100
 - Variation / Size: Free Size
 - Country of Origin: India
-- Manufacturer Name: PURVANCHAL
-- Manufacturer Address: DAWARPAR, GORAKHPUR, UTTARPRADESH
-- Manufacturer Pincode: 273016
-- Packer Name: PURVANCHAL
-- Packer Address: DAWARPAR, GORAKHPUR, UTTARPRADESH
-- Packer Pincode: 273016
-- Importer Name: PURVANCHAL
-- Importer Address: DAWARPAR, GORAKHPUR, UTTARPRADESH
-- Importer Pincode: 273016
+- Manufacturer Name: Groow with Deep
+- Manufacturer Address: Railway Station Shamli , UTTARPRADESH
+- Manufacturer Pincode: 247776
+- Packer Name: Groowithdeep 
+- Packer Address: Railway Station Shamli , UTTARPRADESH
+- Packer Pincode: 247776
+- Importer Name: Groowithdeep 
+- Importer Address: Railway Station Shamli , UTTARPRADESH
+- Importer Pincode: 247776
 - Group ID: GROUP 1
 - Brand Name: (DO NOT fill — leave blank, skip this field entirely)
 
