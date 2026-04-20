@@ -602,7 +602,7 @@ IMPORTANT:
         lbl.includes('description') ||
         sel.toLowerCase().includes('textarea')
       ) {
-        val = enforceDescriptionLength(val, 700);
+        val = enforceDescriptionLength(val, 600);
       }
 
       return { ...f, value: val };
