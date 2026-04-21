@@ -17,8 +17,9 @@ const razorpay = new Razorpay({
 }); 
 
 // temp 
+
+/* 
 let razorpay = null;
-/*
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
   razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
