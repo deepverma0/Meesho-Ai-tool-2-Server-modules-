@@ -156,8 +156,11 @@ if (!pricing) {
 
 res.json({
   success: true,
-  order,
-  plan, // 🔥 add this
+  order: {
+    id: order.id,
+    amount: order.amount
+  },
+  plan,
   days: pricing.days
 });
 
