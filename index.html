@@ -20,6 +20,20 @@
   --border: rgba(226, 232, 240, 0.8);
   --shadow-hd: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
 }
+  /* PROFILE IMAGE UPGRADE */
+.pfp-img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--meesho-pink);
+  box-shadow: 0 10px 25px rgba(255, 71, 190, 0.25);
+  transition: 0.3s;
+}
+
+.pfp-img:hover {
+  transform: scale(1.05);
+}
 
 * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth;}
 body { background: var(--snow); color: var(--ink); overflow-x: hidden; line-height: 1.6; }
@@ -148,7 +162,7 @@ body { background: var(--snow); color: var(--ink); overflow-x: hidden; line-heig
   </div>
 
   <div class="card fade-up" style="margin-top: 80px; display: flex; align-items: center; gap: 30px; background: white;">
-    <img src="https://instagram.fidr1-2.fna.fbcdn.net/v/t51.82787-19/583203257_18069953726590455_1967806669593971281_n.jpg?..." alt="Deep Verma" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--meesho-pink);">
+ <img src="/deep.jpg" alt="Deep Verma" class="pfp-img">
     <div>
       <h3 style="margin-bottom: 5px;">Built by Deep Verma</h3>
       <p>Ecommerce creator dedicated to building practical tools that help sellers grow faster using automation.</p>
