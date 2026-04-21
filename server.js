@@ -365,13 +365,13 @@ app.post("/admin/update-pricing", (req, res) => {
 
   res.json({ success: true });
 });
+
 app.get("/admin/pricing", (req, res) => {
   const db = loadDB();
-  res.json({ success: true, pricing: db.pricing || {} });
-});
-
-  const db = loadDB();
-  res.json({ success: true, pricing: db.pricing || {} });
+  res.json({
+    success: true,
+    pricing: db.pricing || {}
+  });
 });
 
 app.post('/validate-license', (req, res) => {
