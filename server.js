@@ -6,10 +6,23 @@ import OpenAI from "openai";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 
-const razorpay = new Razorpay({
+/*const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+}); */
+
+// temp 
+let razorpay = null;
+
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+  console.log("✅ Razorpay initialized");
+} else {
+  console.log("⚠️ Razorpay not configured (running in dev mode)");
+}
 
 const app = express();
 
@@ -119,6 +132,12 @@ if (!pricing) {
     error: "Invalid plan"
   });
 }
+    if (!razorpay) {
+  return res.status(500).json({
+    success: false,
+    error: "Payment system not configured yet"
+  });
+}
     const order = await razorpay.orders.create({
       amount: pricing.price * 100,
       currency: "INR",
@@ -154,6 +173,12 @@ if (existing) {
   return res.status(400).json({
     success: false,
     error: "Payment already used"
+  });
+}
+    if (!razorpay) {
+  return res.status(500).json({
+    success: false,
+    error: "Payment system not configured yet"
   });
 }
   const finalDays = pricing.days;
