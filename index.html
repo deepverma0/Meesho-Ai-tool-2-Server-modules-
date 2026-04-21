@@ -20,20 +20,6 @@
   --border: rgba(226, 232, 240, 0.8);
   --shadow-hd: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
 }
-  /* PROFILE IMAGE UPGRADE */
-.pfp-img {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid var(--meesho-pink);
-  box-shadow: 0 10px 25px rgba(255, 71, 190, 0.25);
-  transition: 0.3s;
-}
-
-.pfp-img:hover {
-  transform: scale(1.05);
-}
 
 * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth;}
 body { background: var(--snow); color: var(--ink); overflow-x: hidden; line-height: 1.6; }
@@ -131,7 +117,10 @@ body { background: var(--snow); color: var(--ink); overflow-x: hidden; line-heig
 
     <div class="buy-panel">
       <span style="text-transform: uppercase; font-size: 0.8rem; font-weight: 800; color: var(--meesho-pink); letter-spacing: 3px;">ELITE PRO LICENSE</span>
-      <div style="font-size: 3.5rem; font-weight: 900; font-family: 'Outfit'; margin: 10px 0;">₹999<small style="font-size: 1.2rem; color: var(--slate-600); font-weight: 400;">/mo</small></div>
+      <div style="font-size: 3.5rem; font-weight: 900; font-family: 'Outfit'; margin: 10px 0;">
+  ₹<span id="price">...</span>
+  <small style="font-size: 1.2rem; color: var(--slate-600); font-weight: 400;">/mo</small>
+</div>
       <p style="margin-bottom: 20px; color: var(--slate-600); font-size: 0.95rem;">Automate listings, save time, and scale with AI.</p>
       <button class="btn-cta" style="width: 100%; padding: 22px;" onclick="toggleModal()">BUY PRO LICENSE</button>
     </div>
@@ -162,7 +151,7 @@ body { background: var(--snow); color: var(--ink); overflow-x: hidden; line-heig
   </div>
 
   <div class="card fade-up" style="margin-top: 80px; display: flex; align-items: center; gap: 30px; background: white;">
-<img src="/deep.jpg" class="pfp-img">
+    <img src="https://instagram.fidr1-2.fna.fbcdn.net/v/t51.82787-19/583203257_18069953726590455_1967806669593971281_n.jpg?..." alt="Deep Verma" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--meesho-pink);">
     <div>
       <h3 style="margin-bottom: 5px;">Built by Deep Verma</h3>
       <p>Ecommerce creator dedicated to building practical tools that help sellers grow faster using automation.</p>
@@ -187,7 +176,9 @@ body { background: var(--snow); color: var(--ink); overflow-x: hidden; line-heig
 
         <div style="background: var(--snow); padding: 20px; border-radius: 25px; border: 1px solid var(--border); margin: 20px 0; text-align: center;">
           <span style="font-size: 0.75rem; font-weight: 800; color: var(--slate-600); letter-spacing: 1px;">TOTAL PRICE</span>
-          <div style="font-size: 2.5rem; font-weight: 900; color: var(--ink); font-family: 'Outfit';">₹999.00</div>
+          <div style="font-size: 2.5rem; font-weight: 900; color: var(--ink); font-family: 'Outfit';">
+  ₹<span id="modalPrice">...</span>
+</div>
         </div>
 
         <button class="btn-cta" style="width: 100%; padding: 20px; font-size: 1.1rem; border-radius: 20px;" onclick="startPayment()">SECURE CHECKOUT</button>
@@ -236,6 +227,10 @@ function animate() {
 }
 animate();
 
+window.addEventListener("DOMContentLoaded", () => {
+  loadPrice();
+});
+
 const observer = new IntersectionObserver(entries => {
   entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("show"); });
 }, { threshold: 0.1 });
@@ -267,6 +262,26 @@ async function startPayment() {
     };
     new Razorpay(options).open();
   } catch (e) { alert("Server Busy. Try again."); }
+}// 🔥 LOAD PRICE FROM ADMIN
+async function loadPrice() {
+  try {
+    const res = await fetch(API + "/admin/pricing", {
+      headers: {
+        "x-admin-key": "admin"
+      }
+    });
+
+    const data = await res.json();
+    const price = data.pricing?.pro?.price || 999;
+
+    document.getElementById("price").innerText = price;
+    document.getElementById("modalPrice").innerText = price;
+
+  } catch (e) {
+    console.log("Price fetch failed");
+    document.getElementById("price").innerText = 999;
+    document.getElementById("modalPrice").innerText = 999;
+  }
 }
 </script>
 
