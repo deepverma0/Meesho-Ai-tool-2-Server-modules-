@@ -22,11 +22,21 @@ async function start() {
 
     const data = await res.json();
 
+    // ✅ DEBUG HERE
+    console.log("ORDER RESPONSE:", data);
+
+    // 🔥 SAFE HANDLING
+    const order = data.order || data;
+
+    if (!order.id || !order.amount) {
+      throw new Error("Invalid order data");
+    }
+
     const options = {
       key: "rzp_test_SgARnEVtkbjdvv",
-      amount: data.order.amount,
+      amount: order.amount,
       currency: "INR",
-      order_id: data.order.id,
+      order_id: order.id,
 
       handler: async function (response) {
         document.getElementById("status").innerText = "Verifying...";
@@ -36,7 +46,7 @@ async function start() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...response,
-            plan: data.plan
+            plan: data.plan || "pro"
           })
         });
 
@@ -58,6 +68,7 @@ async function start() {
     rzp.open();
 
   } catch (e) {
+    console.error(e);
     document.getElementById("status").innerText = "Error: " + e.message;
   }
 }
