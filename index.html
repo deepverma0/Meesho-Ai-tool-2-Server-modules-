@@ -1,201 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Groow with Deep | Technical Architecture</title>
-  <style>
-    :root {
-      --bg: #020204;
-      --accent: #ff007a;
-      --secondary: #00ffa3;
-      --glass: rgba(255, 255, 255, 0.02);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --text: #ffffff;
-      --text-dim: #9494b8;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: 'Inter', system-ui, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      overflow-x: hidden;
-      perspective: 1200px;
-    }
-
-    /* 3D Background */
-    .mesh-bg {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-image: 
-        radial-gradient(circle at 50% 50%, #ff007a11 0%, transparent 50%),
-        linear-gradient(var(--glass-border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
-      background-size: 100% 100%, 60px 60px, 60px 60px;
-      transform: rotateX(55deg) scale(2) translateY(-100px);
-      z-index: -1;
-      opacity: 0.3;
-      animation: drift 20s linear infinite;
-    }
-
-    @keyframes drift { from { background-position: 0 0; } to { background-position: 0 60px; } }
-
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-
-    nav {
-      position: sticky; top: 20px; z-index: 100;
-      background: rgba(5, 5, 10, 0.7); backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border); border-radius: 100px;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 30px; margin-top: 20px;
-    }
-
-    .status-active { color: var(--secondary); font-size: 0.7rem; font-weight: 800; display: flex; align-items: center; gap: 6px; }
-    .dot { width: 6px; height: 6px; background: var(--secondary); border-radius: 50%; box-shadow: 0 0 10px var(--secondary); }
-
-    header { padding: 100px 0 60px; text-align: center; }
-    h1 { 
-        font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 900; margin: 0; letter-spacing: -2px; line-height: 1;
-        background: linear-gradient(to bottom, #fff, #666); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-
-    /* 3D Bento Grid */
-    .bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; margin-bottom: 100px; }
-    
-    .card {
-      background: var(--glass); border: 1px solid var(--glass-border); border-radius: 24px;
-      padding: 32px; backdrop-filter: blur(10px); transition: 0.4s ease;
-      position: relative; overflow: hidden;
-    }
-
-    .card:hover { transform: translateZ(20px) rotateX(2deg) rotateY(-2deg); border-color: var(--accent); }
-
-    .span-8 { grid-column: span 8; }
-    .span-4 { grid-column: span 4; }
-    .span-6 { grid-column: span 6; }
-    .span-12 { grid-column: span 12; }
-
-    .label { color: var(--accent); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; display: block; }
-    h2 { font-size: 1.8rem; margin: 0 0 15px 0; font-weight: 800; }
-    p { color: var(--text-dim); line-height: 1.6; margin: 0; }
-
-    /* Feature Nodes */
-    .node-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-top: 30px; }
-    .node { 
-        background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); 
-        padding: 15px; border-radius: 12px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px;
-    }
-    .node i { color: var(--accent); font-style: normal; font-weight: 900; }
-
-    /* Execution Timeline */
-    .timeline { position: relative; margin-top: 30px; padding-left: 30px; border-left: 1px solid var(--glass-border); }
-    .time-item { position: relative; margin-bottom: 25px; }
-    .time-item::before { 
-        content: ""; position: absolute; left: -34px; top: 5px; 
-        width: 7px; height: 7px; background: var(--accent); border-radius: 50%; 
-    }
-
-    .highlight-card { background: linear-gradient(135deg, #ff007a22, transparent); border: 1px solid #ff007a44; }
-
-    footer { text-align: center; padding: 60px; opacity: 0.3; font-size: 0.8rem; border-top: 1px solid var(--glass-border); }
-
-    @media (max-width: 900px) { .span-8, .span-4, .span-6 { grid-column: span 12; } }
-  </style>
+  <title>Meesho AI Tool</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
-<body>
-  <div class="mesh-bg"></div>
 
-  <div class="container">
-    <nav>
-      <div class="logo">GROOW WITH DEEP</div>
-      <div class="status-active"><div class="dot"></div> ENGINE v2.4 ONLINE</div>
-    </nav>
+<body style="background:#0f172a;color:white;text-align:center;padding:80px;font-family:sans-serif;">
 
-    <header>
-      <span class="label">Proprietary Automation</span>
-      <h1>Neural Listing<br>Architecture.</h1>
-    </header>
+<h1>🚀 Meesho AI Automation Tool</h1>
+<p>Auto-generate listings, save hours, scale faster.</p>
 
-    <div class="bento">
-      <div class="card span-8">
-        <span class="label">Intelligence Core</span>
-        <h2>Automated Synthesis</h2>
-        <p>The engine doesn't just fill forms; it understands product DNA. By combining computer vision with marketplace taxonomy, it creates a "Digital Twin" of your product.</p>
-        
-        <div class="node-grid">
-          <div class="node"><i>•</i> Vision-based attribute detection</div>
-          <div class="node"><i>•</i> Material & category recognition</div>
-          <div class="node"><i>•</i> SEO Title Synthesis</div>
-          <div class="node"><i>•</i> High-convert Description Engine</div>
-        </div>
-      </div>
+<h2>🔥 PRO PLAN - ₹999 / 30 Days</h2>
 
-      <div class="card span-4 highlight-card">
-        <span class="label">Benchmark</span>
-        <h2 style="font-size: 3rem; margin: 0;">200ms</h2>
-        <p style="font-weight: 800; color: #fff;">Injection Latency</p>
-        <div style="margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">
-          Near-instant field mapping directly into the Chrome DOM layer.
-        </div>
-      </div>
+<button onclick="startPayment()" style="padding:15px 30px;font-size:18px;background:#00ffa3;border:none;border-radius:8px;cursor:pointer;">
+  💳 Buy License
+</button>
 
-      <div class="card span-6">
-        <span class="label">Compliance & Finance</span>
-        <h2>Marketplace Guardrails</h2>
-        <div class="timeline">
-          <div class="time-item"><b>Auto-HSN Mapping:</b> Correct legal codes assigned instantly.</div>
-          <div class="time-item"><b>GST Logic:</b> Automatic tax percentage calculation.</div>
-          <div class="time-item"><b>Pricing Engine:</b> Smart MRP and Listing Price suggestions.</div>
-          <div class="time-item"><b>Weight estimation:</b> Predictive logistics attribute calculation.</div>
-        </div>
-      </div>
+<h3 id="status" style="margin-top:20px;"></h3>
 
-      <div class="card span-6">
-        <span class="label">Operational Flow</span>
-        <h2>Catalog Management</h2>
-        <div class="timeline">
-          <div class="time-item"><b>Unique SKU Gen:</b> Avoid listing collisions with smart IDs.</div>
-          <div class="time-item"><b>Error Prevention:</b> Pre-submission validation to stop rejections.</div>
-          <div class="time-item"><b>Bulk Consistency:</b> Uniform formatting across 1000+ items.</div>
-          <div class="time-item"><b>Native Injection:</b> Runs 100% inside the Meesho Seller Panel.</div>
-        </div>
-      </div>
+<div id="result"></div>
 
-      <div class="card span-12" style="background: rgba(0, 255, 163, 0.02); border-color: rgba(0, 255, 163, 0.2);">
-        <span class="label" style="color: var(--secondary);">Security & Licensing</span>
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-          <div style="max-width: 500px;">
-            <h2>Enterprise-Grade Security</h2>
-            <p>Our license system ensures that your automation environment is locked to your hardware, preventing unauthorized access while allowing seamless relogin.</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-             <div class="node" style="border-color: var(--secondary);">Device Lock System</div>
-             <div class="node" style="border-color: var(--secondary);">License Key Auth</div>
-             <div class="node" style="border-color: var(--secondary);">Admin Key Control</div>
-          </div>
-        </div>
-      </div>
-    </div>
+<script>
+const API = "https://grateful-wonder-production-20e4.up.railway.app";
 
-    <footer>
-      &copy; 2026 GROOW WITH DEEP | BUILT FOR SCALE | NOT AFFILIATED WITH MEESHO INC.
-    </footer>
-  </div>
+async function startPayment() {
+  try {
+    document.getElementById("status").innerText = "Creating order...";
 
-  <script>
-    // Subtle mouse follow effect for cards
-    document.addEventListener('mousemove', (e) => {
-      const cards = document.querySelectorAll('.card');
-      const xAxis = (window.innerWidth / 2 - e.pageX) / 50;
-      const yAxis = (window.innerHeight / 2 - e.pageY) / 50;
-      
-      cards.forEach(card => {
-        card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-      });
+    const res = await fetch(API + "/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: "pro" })
     });
-  </script>
+
+    const data = await res.json();
+    const order = data.order;
+
+    const options = {
+      key: "rzp_test_SgARnEVtkbjdvv",
+      amount: order.amount,
+      currency: "INR",
+      order_id: order.id,
+
+      handler: async function (response) {
+        document.getElementById("status").innerText = "Verifying payment...";
+
+        const verify = await fetch(API + "/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...response,
+            plan: "pro"
+          })
+        });
+
+        const result = await verify.json();
+
+        if (result.success) {
+          document.getElementById("result").innerHTML = `
+            <h2>✅ Payment Successful</h2>
+            <p>Your License Key:</p>
+            <h1 style="color:#00ffa3">${result.key}</h1>
+
+            <a href="https://your-extension-download-link.com" target="_blank">
+              <button style="padding:12px 20px;margin-top:20px;font-size:16px;">
+                ⬇ Download Extension
+              </button>
+            </a>
+          `;
+        } else {
+          document.getElementById("status").innerText = "❌ Verification failed";
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (e) {
+    document.getElementById("status").innerText = "Error: " + e.message;
+  }
+}
+</script>
+
 </body>
 </html>
