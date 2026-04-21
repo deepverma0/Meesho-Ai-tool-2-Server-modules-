@@ -3,6 +3,13 @@ import cors from "cors";
 import multer from "multer";
 import fs from "fs";
 import OpenAI from "openai";
+import Razorpay from "razorpay";
+import crypto from "crypto";
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 const app = express();
 
@@ -93,6 +100,76 @@ function requireLicense(req, res, next) {
 
   next();
 }
+
+app.post("/create-order", async (req, res) => {
+  try {
+    const { amount = 499 } = req.body; // ₹499 default
+
+    const order = await razorpay.orders.create({
+      amount: amount * 100, // paise
+      currency: "INR",
+      receipt: "receipt_" + Date.now()
+    });
+
+    res.json({
+      success: true,
+      order
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+app.post("/verify-payment", (req, res) => {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      days = 30
+    } = req.body;
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid payment signature"
+      });
+    }
+
+    // ✅ PAYMENT VERIFIED → GENERATE LICENSE
+    const db = loadDB();
+
+    const newKey = {
+      key: generateKey(),
+      expiry: new Date(Date.now() + days * 86400000).toISOString(),
+      deviceId: null,
+      createdAt: new Date().toISOString(),
+      lastUsed: null,
+      status: "active",
+      paymentId: razorpay_payment_id
+    };
+
+    db.licenses.push(newKey);
+    saveDB(db);
+
+    res.json({
+      success: true,
+      key: newKey.key,
+      expiry: newKey.expiry
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 /* ================== ADMIN ================== */
 const ADMIN_KEY = process.env.ADMIN_KEY || "admin";
