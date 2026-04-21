@@ -156,8 +156,7 @@ if (existing) {
     error: "Payment already used"
   });
 }
-    const finalDays = pricing?.days || 30;
-
+  const finalDays = pricing.days;
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
