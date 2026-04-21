@@ -52,6 +52,14 @@ function saveDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
+const existing = db.licenses.find(k => k.paymentId === razorpay_payment_id);
+if (existing) {
+  return res.status(400).json({
+    success: false,
+    error: "Payment already used"
+  });
+}
+
 function generateKey() {
   return "MEESHO-" + Math.random().toString(36).substr(2, 8).toUpperCase();
 }
@@ -111,7 +119,12 @@ app.post("/create-order", async (req, res) => {
     const { plan = "pro" } = req.body;
 
     const db = loadDB();
-    const pricing = db.pricing?.[plan];
+   if (!pricing) {
+  return res.status(400).json({
+    success: false,
+    error: "Invalid plan"
+  });
+}
 
     if (!pricing) {
       return res.status(400).json({ success: false, error: "Invalid plan" });
