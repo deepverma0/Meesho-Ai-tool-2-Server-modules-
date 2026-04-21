@@ -123,11 +123,12 @@ app.post("/create-order", async (req, res) => {
       receipt: "receipt_" + Date.now()
     });
 
-    res.json({
-      success: true,
-      order,
-      days: pricing.days
-    });
+res.json({
+  success: true,
+  order,
+  plan, // 🔥 add this
+  days: pricing.days
+});
 
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -136,15 +137,18 @@ app.post("/create-order", async (req, res) => {
 
 app.post("/verify-payment", (req, res) => {
   try {
-  const {
-  razorpay_order_id,
-  razorpay_payment_id,
-  razorpay_signature,
-  days
-} = req.body;
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      plan
+    } = req.body;
 
-// ✅ fallback logic
-const finalDays = days || 30;
+    // 🔒 Get plan from DB (NOT frontend days)
+    const db = loadDB();
+    const pricing = db.pricing?.[plan];
+
+    const finalDays = pricing?.days || 30;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -160,18 +164,17 @@ const finalDays = days || 30;
       });
     }
 
-    // ✅ PAYMENT VERIFIED → GENERATE LICENSE
-    const db = loadDB();
+    // ✅ Generate key
+    const newKey = {
+      key: generateKey(),
+      expiry: new Date(Date.now() + finalDays * 86400000).toISOString(),
+      deviceId: null,
+      createdAt: new Date().toISOString(),
+      lastUsed: null,
+      status: "active",
+      paymentId: razorpay_payment_id
+    };
 
-   const newKey = {
-  key: generateKey(),
-  expiry: new Date(Date.now() + finalDays * 86400000).toISOString(),
-  deviceId: null,
-  createdAt: new Date().toISOString(),
-  lastUsed: null,
-  status: "active",
-  paymentId: razorpay_payment_id
-};
     db.licenses.push(newKey);
     saveDB(db);
 
@@ -185,7 +188,6 @@ const finalDays = days || 30;
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
 
 /* ================== ADMIN ================== */
 const ADMIN_KEY = process.env.ADMIN_KEY || "admin";
