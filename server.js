@@ -38,7 +38,12 @@ const DB_FILE = "./db.json";
 
 function loadDB() {
   if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({ licenses: [] }, null, 2));
+    fs.writeFileSync(DB_FILE, JSON.stringify({
+      licenses: [],
+      pricing: {
+        pro: { price: 999, days: 30 }
+      }
+    }, null, 2));
   }
   return JSON.parse(fs.readFileSync(DB_FILE));
 }
@@ -100,34 +105,46 @@ function requireLicense(req, res, next) {
 
   next();
 }
-
+//order amount creation 
 app.post("/create-order", async (req, res) => {
   try {
-    const { amount = 499 } = req.body; // ₹499 default
+    const { plan = "pro" } = req.body;
+
+    const db = loadDB();
+    const pricing = db.pricing?.[plan];
+
+    if (!pricing) {
+      return res.status(400).json({ success: false, error: "Invalid plan" });
+    }
 
     const order = await razorpay.orders.create({
-      amount: amount * 100, // paise
+      amount: pricing.price * 100,
       currency: "INR",
       receipt: "receipt_" + Date.now()
     });
 
     res.json({
       success: true,
-      order
+      order,
+      days: pricing.days
     });
 
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 app.post("/verify-payment", (req, res) => {
   try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      days = 30
-    } = req.body;
+  const {
+  razorpay_order_id,
+  razorpay_payment_id,
+  razorpay_signature,
+  days
+} = req.body;
+
+// ✅ fallback logic
+const finalDays = days || 30;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -146,16 +163,15 @@ app.post("/verify-payment", (req, res) => {
     // ✅ PAYMENT VERIFIED → GENERATE LICENSE
     const db = loadDB();
 
-    const newKey = {
-      key: generateKey(),
-      expiry: new Date(Date.now() + days * 86400000).toISOString(),
-      deviceId: null,
-      createdAt: new Date().toISOString(),
-      lastUsed: null,
-      status: "active",
-      paymentId: razorpay_payment_id
-    };
-
+   const newKey = {
+  key: generateKey(),
+  expiry: new Date(Date.now() + finalDays * 86400000).toISOString(),
+  deviceId: null,
+  createdAt: new Date().toISOString(),
+  lastUsed: null,
+  status: "active",
+  paymentId: razorpay_payment_id
+};
     db.licenses.push(newKey);
     saveDB(db);
 
@@ -281,6 +297,32 @@ app.post("/admin/extend-license", (req, res) => {
   saveDB(db);
 
   res.json({ success: true, newExpiry: key.expiry });
+});
+app.post("/admin/update-pricing", (req, res) => {
+  if (req.headers["x-admin-key"] !== ADMIN_KEY) {
+    return res.status(401).json({ success: false });
+  }
+
+  const { plan, price, days } = req.body;
+
+  const db = loadDB();
+
+  if (!db.pricing) db.pricing = {};
+
+  db.pricing[plan] = {
+    price: Number(price),
+    days: Number(days)
+  };
+
+  saveDB(db);
+
+  res.json({ success: true });
+});
+app.get("/admin/pricing", (req, res) => {
+  if (!checkAdmin(req, res)) return;
+
+  const db = loadDB();
+  res.json({ success: true, pricing: db.pricing || {} });
 });
 
 app.post('/validate-license', (req, res) => {
