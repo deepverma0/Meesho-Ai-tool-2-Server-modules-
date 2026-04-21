@@ -11,14 +11,14 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/*const razorpay = new Razorpay({
+*const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET
-}); */
+}); 
 
 // temp 
 let razorpay = null;
-
+/*
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
   razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -28,7 +28,7 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 } else {
   console.log("⚠️ Razorpay not configured (running in dev mode)");
 }
-
+*/
 const app = express();
 
 app.get("/", (req, res) => {
