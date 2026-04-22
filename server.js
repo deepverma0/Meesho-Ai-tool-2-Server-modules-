@@ -18,10 +18,17 @@ const supabase = createClient(
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-}); 
+let razorpay = null;
+
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+  console.log("✅ Razorpay ready");
+} else {
+  console.log("❌ Razorpay NOT configured");
+}
 
 // temp 
 
@@ -38,15 +45,6 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 }
 */
 const app = express();
-
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100
-}));
-
-
-app.use(express.static("public"));
-
 /* ================== CORS ================== */
 app.use(cors({
   origin: "*",
@@ -56,10 +54,19 @@ app.use(cors({
 app.options("*", cors());
 app.use(express.json());
 
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100
+}));
+
+
+app.use(express.static("public"));
+
+
 const PORT = process.env.PORT || 5001;
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+ res.sendFile(path.join(__dirname, "public", "index.html"));
 });
  
 
