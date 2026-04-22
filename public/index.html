@@ -3,259 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meesho AI Tool | Automation Pro</title>
+<title>Meesho AI Auto-Listing Tool | Scale Your Shop</title>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
   :root {
-    --primary: #ff4791;
-    --secondary: #8b5cf6;
-    --bg-dark: #0f172a;
-    --card-bg: rgba(255, 255, 255, 0.07);
+    --meesho-pink: #ff4791;
+    --dark-slate: #0f172a;
+    --glass: rgba(255, 255, 255, 0.08);
   }
 
   body {
     margin: 0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: var(--bg-dark);
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(255, 71, 145, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(circle at top right, #2d1b4d, #0f172a);
+    color: #f8fafc;
+    line-height: 1.6;
     min-height: 100vh;
   }
 
   .container {
-    max-width: 450px;
-    width: 90%;
-    background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 40px;
-    border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    transition: transform 0.3s ease;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
   }
 
-  .logo {
-    width: 130px;
-    filter: drop-shadow(0 0 8px rgba(255, 71, 145, 0.3));
-    margin-bottom: 24px;
+  /* Main Card */
+  .hero-card {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+  }
+
+  .content-left { flex: 1; min-width: 300px; }
+  .content-right { 
+    flex: 0.8; 
+    min-width: 300px; 
+    background: rgba(0,0,0,0.2); 
+    padding: 30px; 
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .badge {
+    background: rgba(255, 71, 145, 0.2);
+    color: var(--meesho-pink);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 15px;
   }
 
   h1 {
-    font-size: 28px;
-    font-weight: 800;
-    margin: 0 0 12px 0;
-    background: linear-gradient(to right, #fff, #cbd5e1);
+    font-size: 32px;
+    margin: 0 0 15px 0;
+    background: linear-gradient(to right, #ffffff, #f472b6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  .desc {
-    font-size: 15px;
-    color: #94a3b8;
-    line-height: 1.6;
-    margin-bottom: 30px;
-  }
+  .sub-heading { color: #94a3b8; margin-bottom: 25px; font-size: 16px; }
 
-  .features {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    text-align: left;
-    margin-bottom: 30px;
-  }
-
-  .feature-item {
+  /* Detailed Features List */
+  .detail-list { margin-bottom: 30px; }
+  .detail-item {
     display: flex;
-    align-items: center;
-    font-size: 13px;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: flex-start;
+    margin-bottom: 15px;
+    font-size: 14px;
   }
-
-  .feature-item i {
+  .detail-item i {
     color: #22c55e;
-    margin-right: 8px;
+    margin-right: 12px;
+    margin-top: 4px;
   }
+  .detail-item b { display: block; color: #fff; }
 
-  .price-card {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 20px;
-    border-radius: 18px;
-    margin-bottom: 25px;
-  }
+  /* Pricing & Buy */
+  .price-tag { font-size: 48px; font-weight: 800; margin: 10px 0; color: #fff; }
+  .price-sub { font-size: 14px; color: #94a3b8; margin-bottom: 20px; }
 
-  .price-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-
-  .price {
-    font-size: 48px;
-    font-weight: 800;
-    margin: 5px 0;
-    color: white;
-  }
-
-  button {
+  .buy-btn {
     width: 100%;
-    padding: 16px;
-    font-size: 16px;
-    border-radius: 14px;
-    border: none;
-    background: linear-gradient(135deg, #ff4791, #e91e63);
-    color: white;
+    padding: 18px;
+    font-size: 18px;
     font-weight: bold;
+    border: none;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #ff4791, #db2777);
+    color: white;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 10px 15px -3px rgba(255, 71, 145, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 10px 20px rgba(255, 71, 145, 0.3);
   }
 
-  button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 20px -3px rgba(255, 71, 145, 0.4);
-  }
+  .buy-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(255, 71, 145, 0.4); }
 
-  button:active { transform: translateY(0); }
-
+  /* Success Section */
   #success {
     display: none;
-    margin-top: 25px;
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.2);
-    padding: 24px;
-    border-radius: 18px;
-    animation: slideUp 0.4s ease-out;
+    margin-top: 20px;
+    background: #064e3b;
+    border: 1px solid #059669;
+    padding: 20px;
+    border-radius: 15px;
   }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .key-container {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 12px;
+  .key-box {
+    background: #000;
+    padding: 10px;
     border-radius: 8px;
     font-family: monospace;
     font-size: 18px;
     color: #4ade80;
-    margin: 15px 0;
-    letter-spacing: 2px;
-    border: 1px dashed rgba(74, 222, 128, 0.5);
+    margin: 10px 0;
   }
-
-  .download {
-    display: inline-block;
-    width: 100%;
-    box-sizing: border-box;
-    margin-top: 10px;
-    padding: 14px;
-    background: white;
-    color: black;
+  .dl-link {
+    display: block;
+    background: #fff;
+    color: #000;
     text-decoration: none;
-    border-radius: 10px;
+    padding: 12px;
+    border-radius: 8px;
     font-weight: bold;
-    transition: background 0.2s;
+    margin-top: 10px;
   }
 
-  .footer-credit {
-    margin-top: 30px;
-    font-size: 11px;
-    color: #64748b;
-    letter-spacing: 0.5px;
-  }
+  .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #64748b; }
 </style>
 </head>
+
 <body>
 
 <div class="container">
-  <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/8/80/Meesho_Logo_Full.png" alt="Meesho">
-  
-  <h1>AI Automation</h1>
-  <p class="desc">Scale your Meesho business with smart automation. Auto-list, generate titles, and manage bulk orders in seconds.</p>
+  <div class="hero-card">
+    
+    <div class="content-left">
+      <span class="badge">Official AI Partner</span>
+      <h1>Meesho AI Auto-Listing Tool</h1>
+      <p class="sub-heading">The most powerful Chrome extension to automate your seller workflow and maximize sales.</p>
+      
+      <div class="detail-list">
+        <div class="detail-item">
+          <i class="fas fa-check-circle"></i>
+          <span><b>Smart AI Copywriting</b>Automatically generates SEO-optimized titles and descriptions that rank higher.</span>
+        </div>
+        <div class="detail-item">
+          <i class="fas fa-check-circle"></i>
+          <span><b>One-Click Bulk Upload</b>Upload 100+ products from Excel/CSV in minutes instead of hours.</span>
+        </div>
+        <div class="detail-item">
+          <i class="fas fa-check-circle"></i>
+          <span><b>Image BG Removal</b>Automatically cleans product images to meet Meesho's guidelines.</span>
+        </div>
+        <div class="detail-item">
+          <i class="fas fa-check-circle"></i>
+          <span><b>Competitor Tracking</b>Keep track of price changes and stock levels in real-time.</span>
+        </div>
+      </div>
+    </div>
 
-  <div class="features">
-    <div class="feature-item"><i class="fas fa-bolt"></i> Auto Listing</div>
-    <div class="feature-item"><i class="fas fa-magic"></i> AI Titles</div>
-    <div class="feature-item"><i class="fas fa-layer-group"></i> Bulk Upload</div>
-    <div class="feature-item"><i class="fas fa-shield-halved"></i> Secure</div>
+    <div class="content-right">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Meesho_Logo_Full.png" width="100" style="margin-bottom:10px;">
+      <div class="price-sub">Life-Time Access</div>
+      <div class="price-tag">₹<span id="price">...</span></div>
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 20px;">Join 5,000+ Successful Meesho Sellers</p>
+      
+      <button class="buy-btn" onclick="startPayment()">
+        <i class="fas fa-shopping-cart" style="margin-right:10px;"></i> BUY NOW
+      </button>
+
+      <div id="success">
+        <h4 style="margin:0">Activation Successful!</h4>
+        <p style="font-size:12px">Save this license key:</p>
+        <div class="key-box" id="generatedKey"></div>
+        <a href="/extension.zip" class="dl-link"><i class="fas fa-download"></i> Download Extension</a>
+      </div>
+    </div>
+
   </div>
 
-  <div class="price-card">
-    <div class="price-label">One-time Payment</div>
-    <div class="price">₹<span id="price">999</span></div>
+  <div class="footer">
+    Developed with ❤️ by <b>Deep Verma</b> | Secure Payments via Razorpay
   </div>
-
-  <button onclick="startPayment()">
-    <i class="fas fa-rocket" style="margin-right: 8px;"></i> Get Instant Access
-  </button>
-
-  <div id="success">
-    <h3 style="margin: 0; color: #4ade80;">🎉 Payment Success!</h3>
-    <p style="font-size: 13px; color: #94a3b8;">Copy your license key below:</p>
-    <div class="key-container" id="generatedKey">XXXX-XXXX-XXXX</div>
-    <a href="/extension.zip" class="download">
-      <i class="fas fa-download" style="margin-right: 8px;"></i> Download Extension
-    </a>
-  </div>
-
-  <p class="footer-credit">Engineered by <b>Deep Verma</b></p>
 </div>
 
 <script>
-  // Script logic remains the same as your original, 
-  // just ensuring the ID "price" and payment logic connects.
-  const API = "https://grateful-wonder-production-20e4.up.railway.app";
+const API = "https://grateful-wonder-production-20e4.up.railway.app";
 
-  async function loadPrice(){
-    try {
-      const res = await fetch(API + "/pricing?ts=" + Date.now());
-      const data = await res.json();
-      document.getElementById("price").innerText = data?.[0]?.price || 999;
-    } catch(e) { console.log("Price fetch error"); }
-  }
-  loadPrice();
+async function loadPrice(){
+  try {
+    const res = await fetch(API + "/pricing?ts=" + Date.now());
+    const data = await res.json();
+    document.getElementById("price").innerText = data?.[0]?.price || 999;
+  } catch(e) { document.getElementById("price").innerText = "999"; }
+}
+loadPrice();
 
-  async function startPayment(){
-    // ... logic remains same as original script
-    try {
-      const res = await fetch(API + "/create-order", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ plan:"pro" })
-      });
-      const data = await res.json();
-      const options = {
-        key: "rzp_test_SgARnEVtkbjdvv",
-        amount: data.order.amount,
-        currency: "INR",
-        order_id: data.order.id,
-        handler: async function(response){
-          const verify = await fetch(API + "/verify-payment", {
-            method:"POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({ ...response, plan:"pro" })
-          });
-          const result = await verify.json();
-          if(result.success){
-            document.getElementById("success").style.display = "block";
-            document.getElementById("generatedKey").innerText = result.key;
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-          } else { alert(result.error); }
+async function startPayment(){
+  try{
+    const res = await fetch(API + "/create-order", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ plan:"pro" })
+    });
+    const data = await res.json();
+
+    const options = {
+      key: "rzp_test_SgARnEVtkbjdvv",
+      amount: data.order.amount,
+      currency: "INR",
+      name: "Meesho AI Tool",
+      order_id: data.order.id,
+      handler: async function(response){
+        const verify = await fetch(API + "/verify-payment", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ ...response, plan:"pro" })
+        });
+        const result = await verify.json();
+        if(result.success){
+          document.getElementById("success").style.display = "block";
+          document.getElementById("generatedKey").innerText = result.key;
+        } else {
+          alert("Payment failed: " + result.error);
         }
-      };
-      new Razorpay(options).open();
-    } catch(e) { alert("Server error"); }
+      }
+    };
+    new Razorpay(options).open();
+  }catch(e){
+    alert("Unable to connect to server. Please try later.");
   }
+}
 </script>
 
 </body>
