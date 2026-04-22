@@ -3,6 +3,7 @@ import cors from "cors";
 import multer from "multer";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import OpenAI from "openai";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
@@ -15,6 +16,12 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
+
+/* ================== OPENAI ================== */
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 30000
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
