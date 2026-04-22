@@ -436,15 +436,21 @@ app.post("/admin/update-pricing", async (req, res) => {
 
   const { plan, price, days } = req.body;
 
-  await supabase
+  const { error } = await supabase
     .from("pricing")
-    .upsert(
-      [{ plan, price: Number(price), days: Number(days) }],
-      { onConflict: "plan" }   // 🔥 IMPORTANT FIX
-    );
+    .update({
+      price: Number(price),
+      days: Number(days)
+    })
+    .eq("plan", plan);   // 🔥 ONLY UPDATE EXISTING
+
+  if (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
 
   res.json({ success: true });
 });
+
 
 
 
