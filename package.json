@@ -1,4 +1,4 @@
-{
+{{
   "name": "meesho-server",
   "version": "1.0.0",
   "type": "module",
@@ -10,7 +10,8 @@
     "cors": "^2.8.5",
     "openai": "^4.0.0",
     "multer": "^1.4.5-lts.1",
-      "razorpay": "^2.x.x"
-    "@supabase/supabase-js": "^2.x.x"
+    "razorpay": "^2.0.0",
+    "@supabase/supabase-js": "^2.0.0",
+    "express-rate-limit": "^7.0.0"
   }
 }
