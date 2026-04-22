@@ -438,10 +438,14 @@ app.post("/admin/update-pricing", async (req, res) => {
 
   await supabase
     .from("pricing")
-    .upsert([{ plan, price: Number(price), days: Number(days) }]);
+    .upsert(
+      [{ plan, price: Number(price), days: Number(days) }],
+      { onConflict: "plan" }   // 🔥 IMPORTANT FIX
+    );
 
   res.json({ success: true });
 });
+
 
 
 app.get("/admin/pricing", async (req, res) => {
