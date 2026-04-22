@@ -260,6 +260,18 @@ app.post("/verify-payment", async (req, res) => {
   }
 });
 
+app.get("/pricing", async (req, res) => {
+  const { data, error } = await supabase
+    .from("pricing")
+    .select("*");
+
+  if (error) {
+    return res.status(500).json({ success: false });
+  }
+
+  res.json(data);
+});
+
 app.get("/admin/revenue", async (req, res) => {
   const { data } = await supabase.from("licenses").select("*");
 
