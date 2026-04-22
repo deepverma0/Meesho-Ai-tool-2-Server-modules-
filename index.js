@@ -300,8 +300,9 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
     if (event.event === "payment.captured") {
       const payment = event.payload.payment.entity;
 
-      const paymentId = payment.id;
-      const amount = payment.amount / 100;
+    const paymentId = payment.id;
+    const orderId = payment.order_id; // 🔥 VERY IMPORTANT
+    const amount = payment.amount / 100;
 
       console.log("💰 Payment captured:", paymentId);
 
@@ -325,15 +326,15 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
       const pricing = data?.[0];
 
       const newKey = {
-        key: generateKey(),
-        expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
-        deviceId: null,
-        createdAt: new Date().toISOString(),
-        status: "active",
-        paymentId: paymentId,
-        amount: pricing.price,
-        plan: pricing.plan
-      };
+  key: generateKey(),
+  orderId: orderId, // 🔥 THIS IS THE FIX
+  paymentId: paymentId,
+  expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+  createdAt: new Date().toISOString(),
+  status: "active",
+  amount: pricing.price,
+  plan: pricing.plan
+};
 
       await supabase.from("licenses").insert([newKey]);
 
@@ -540,6 +541,23 @@ app.post("/admin/update-pricing", async (req, res) => {
 });
 
 
+app.get("/get-key-by-order/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+
+  const { data } = await supabase
+    .from("licenses")
+    .select("*")
+    .eq("orderId", orderId);
+
+  if (!data || data.length === 0) {
+    return res.json({ success: false });
+  }
+
+  res.json({
+    success: true,
+    key: data[0].key
+  });
+});
 
 
 app.get("/admin/pricing", async (req, res) => {
