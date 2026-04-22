@@ -4,160 +4,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meesho AI Auto-Listing Tool | Scale Your Business</title>
+<title>Meesho AI Auto-Listing Tool</title>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
   :root {
     --primary: #ff4791;
-
-    /* DARK DEFAULT */
-    --bg: #0f172a;
-    --card-bg: #1e293b;
-    --text: #ffffff;
-    --text-muted: #94a3b8;
-  }
-
-  /* LIGHT MODE */
-  .light {
     --bg: #f8fafc;
-    --card-bg: #ffffff;
+    --card: #ffffff;
     --text: #0f172a;
-    --text-muted: #475569;
+    --muted: #64748b;
   }
 
   body {
     margin: 0;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.6;
-    transition: 0.3s;
   }
 
   .container {
     max-width: 800px;
-    margin: 0 auto;
+    margin: auto;
     padding: 40px 20px;
     text-align: center;
   }
 
-  header {
-    margin-bottom: 50px;
-  }
-
   h1 {
     font-size: 2.5rem;
-    margin-bottom: 10px;
-    background: linear-gradient(90deg, #ff4791, #ff85b3);
+    background: linear-gradient(90deg,#ff4791,#ff85b3);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  .badge {
-    background: rgba(255, 71, 145, 0.1);
-    color: var(--primary);
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    border: 1px solid var(--primary);
-  }
-
-  .toggle-btn {
-    margin-top: 15px;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    background: var(--card-bg);
-    color: var(--text);
-  }
-
-  .product-card {
-    background: var(--card-bg);
-    border-radius: 20px;
+  .card {
+    background: var(--card);
     padding: 40px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    margin-top: 30px;
   }
 
-  .description {
-    color: var(--text-muted);
-    margin-bottom: 30px;
-    text-align: left;
-  }
-
-  .features-list {
-    text-align: left;
-    margin: 20px 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .features-list li {
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-  }
-
-  .features-list li::before {
-    content: "✓";
-    color: #4ade80;
-    margin-right: 10px;
+  .price {
+    font-size: 32px;
     font-weight: bold;
+    margin: 20px 0;
   }
 
-  .btn-buy {
+  .btn {
     width: 100%;
     padding: 18px;
-    font-size: 1.2rem;
+    font-size: 18px;
     background: var(--primary);
     color: white;
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    font-weight: bold;
-    transition: 0.2s;
   }
 
-  .btn-buy:hover {
-    background: #e3367d;
+  .btn:hover {
     transform: translateY(-2px);
   }
 
-  #status-container {
-    display: none;
-    margin-top: 30px;
-    padding: 20px;
-    border-radius: 12px;
-    background: rgba(0,0,0,0.05);
-    border: 1px dashed #4ade80;
+  #status {
+    margin-top: 20px;
   }
 
   .key-box {
     background: #000;
-    padding: 15px;
-    margin: 15px 0;
-    font-family: monospace;
     color: #4ade80;
+    padding: 15px;
+    margin-top: 15px;
     border-radius: 8px;
-    word-break: break-all;
-  }
-
-  .download-link {
-    display: inline-block;
-    margin-top: 10px;
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: bold;
-  }
-
-  footer {
-    margin-top: 50px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    font-family: monospace;
   }
 </style>
 
@@ -166,62 +86,84 @@
 <body>
 
 <div class="container">
-  <header>
-    <span class="badge">AI-POWERED AUTOMATION</span>
-    <h1>Meesho Auto-Listing Pro</h1>
-    <p>Upload 100s of products in minutes, not days.</p>
+
+  <h1>Meesho Auto Listing Pro</h1>
+  <p>Automate your product uploads using AI</p>
+
+  <div class="card">
 
 ```
-<button class="toggle-btn" onclick="toggleTheme()">🌗 Toggle Theme</button>
+<!-- 🔥 DYNAMIC PRICE -->
+<div class="price" id="price">Loading...</div>
+
+<button class="btn" onclick="startPayment()">
+  🚀 Unlock Full Access
+</button>
+
+<div id="status"></div>
 ```
 
-  </header>
+  </div>
 
-  <main class="product-card">
-    <div class="description">
-      <h3>Transform Your Seller Workflow</h3>
-      <p>The Meesho AI Auto-Listing Tool automates product cataloging using AI.</p>
-
-```
-  <ul class="features-list">
-    <li>Bulk Upload</li>
-    <li>AI Descriptions</li>
-    <li>Auto Category</li>
-    <li>1-Click Activation</li>
-  </ul>
-</div>
-
-<button class="btn-buy" onclick="startPayment()">GET INSTANT ACCESS</button>
-
-<div id="status-container">
-  <div id="status-content"></div>
-</div>
-```
-
-  </main>
-
-  <footer>
-    Secure payment via Razorpay.
-  </footer>
 </div>
 
 <script>
 const API = "https://grateful-wonder-production-20e4.up.railway.app";
 
-// THEME
-function toggleTheme(){
-  document.body.classList.toggle("light");
-  localStorage.setItem("theme", document.body.classList.contains("light") ? "light":"dark");
+let currentPrice = 0;
+
+// ================= LOAD PRICE FROM SUPABASE =================
+async function loadPrice(){
+  try {
+    const res = await fetch(API + "/pricing"); // 👈 your public route
+    const data = await res.json();
+
+    const pricing = data.pricing?.[0];
+
+    if(pricing){
+      currentPrice = pricing.price;
+      document.getElementById("price").innerText =
+        "₹" + pricing.price + " / " + pricing.days + " days";
+    } else {
+      document.getElementById("price").innerText = "Price unavailable";
+    }
+
+  } catch(e){
+    document.getElementById("price").innerText = "Error loading price";
+  }
 }
 
-window.onload = () => {
-  if(localStorage.getItem("theme")==="light"){
-    document.body.classList.add("light");
-  }
-  checkKeyLoop();
-};
+loadPrice();
 
-// KEEP YOUR LOGIC SAME
+
+// ================= PAYMENT =================
+async function startPayment(){
+  const res = await fetch(API + "/create-order", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ plan: "pro" })
+  });
+
+  const data = await res.json();
+
+  localStorage.setItem("order_id", data.order.id);
+
+  const rzp = new Razorpay({
+    key: "rzp_live_YOUR_KEY",
+    amount: data.order.amount,
+    order_id: data.order.id,
+    name: "Meesho AI Tool",
+    description: "Pro License"
+  });
+
+  rzp.open();
+
+  document.getElementById("status").innerHTML = "⏳ Waiting for payment...";
+  checkKeyLoop();
+}
+
+
+// ================= KEY FETCH =================
 async function checkKeyLoop(){
   const orderId = localStorage.getItem("order_id");
   if(!orderId) return;
@@ -232,32 +174,17 @@ async function checkKeyLoop(){
 
     if(data.success){
       clearInterval(interval);
-      document.getElementById("status-container").style.display = "block";
-      document.getElementById("status-content").innerHTML = `
+
+      document.getElementById("status").innerHTML = `
         <h3>✅ Payment Successful</h3>
         <div class="key-box">${data.key}</div>
-        <a href="${API}/extension.zip" target="_blank">Download Extension</a>
+        <a href="${API}/extension.zip" target="_blank">
+          Download Extension
+        </a>
       `;
     }
+
   },3000);
-}
-
-async function startPayment(){
-  const res = await fetch(API + "/create-order",{method:"POST"});
-  const data = await res.json();
-
-  localStorage.setItem("order_id", data.order.id);
-
-  const rzp = new Razorpay({
-    key: "rzp_live_YOUR_KEY",
-    amount: data.order.amount,
-    order_id: data.order.id,
-  });
-
-  rzp.open();
-
-  document.getElementById("status-container").style.display = "block";
-  document.getElementById("status-content").innerHTML = "⏳ Processing...";
 }
 </script>
 
