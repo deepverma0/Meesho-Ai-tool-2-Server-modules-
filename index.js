@@ -7,7 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
 import rateLimit from "express-rate-limit";
-
+const upload = multer({ storage: multer.memoryStorage() });
 /* ================== SETUP ================== */
 const app = express();
 
