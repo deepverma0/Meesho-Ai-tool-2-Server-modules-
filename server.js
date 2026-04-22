@@ -46,10 +46,7 @@ app.use(rateLimit({
 
 
 app.use(express.static("public"));
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
- 
+
 /* ================== CORS ================== */
 app.use(cors({
   origin: "*",
@@ -60,6 +57,11 @@ app.options("*", cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 5001;
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+ 
 
 /* ================== OPENAI ================== */
 const openai = new OpenAI({
