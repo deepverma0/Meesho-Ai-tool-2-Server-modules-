@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import multer from "multer";
-import fs from "fs";
 import OpenAI from "openai";
 import Razorpay from "razorpay";
 import crypto from "crypto";
@@ -78,11 +77,12 @@ function generateKey() {
 
 /* ================== LICENSE ================== */
 async function validateLicenseCore(licenseKey, deviceId) {
-  const { data: key, error } = await supabase
+  const { data } = await supabase
     .from("licenses")
     .select("*")
-    .eq("key", licenseKey)
-    .single();
+    .eq("key", licenseKey);
+
+  const key = data?.[0];
 
   if (!key) return { ok: false, error: "Invalid key" };
 
@@ -96,7 +96,6 @@ async function validateLicenseCore(licenseKey, deviceId) {
     return { ok: false, error: "Used in another browser" };
   }
 
-  // expiry check
   const now = new Date();
   const expiry = new Date(key.expiry);
 
@@ -104,10 +103,7 @@ async function validateLicenseCore(licenseKey, deviceId) {
     return { ok: false, error: "Expired" };
   }
 
-  return {
-    ok: true,
-    expiry: key.expiry
-  };
+  return { ok: true, expiry: key.expiry };
 }
 
 app.post('/logout', (req, res) => {
@@ -182,50 +178,57 @@ app.post("/verify-payment", async (req, res) => {
       plan
     } = req.body;
 
-    // 🔒 Get plan from DB (NOT frontend days)
+    // 🔒 prevent duplicate payment
+    const { data: existing } = await supabase
+      .from("licenses")
+      .select("paymentId")
+      .eq("paymentId", razorpay_payment_id);
+
+    if (existing && existing.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Payment already used"
+      });
+    }
+
+    // 🔒 get pricing safely
     const { data: pricing } = await supabase
-  .from("pricing")
-  .select("*")
-  .eq("plan", plan)
-  .single();
+      .from("pricing")
+      .select("*")
+      .eq("plan", plan)
+      .single();
 
-  const { data: existing } = await supabase
-  .from("licenses")
-  .select("paymentId")
-  .eq("paymentId", razorpay_payment_id)
-  .single();
+    if (!pricing) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid plan"
+      });
+    }
 
-if (existing) {
-  return res.status(400).json({
-    success: false,
-    error: "Payment already used"
-  });
-}
     if (!razorpay) {
-  return res.status(500).json({
-    success: false,
-    error: "Payment system not configured yet"
-  });
-}
-  const finalDays = pricing.days;
+      return res.status(500).json({
+        success: false,
+        error: "Payment system not configured"
+      });
+    }
+
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(body.toString())
+      .update(body)
       .digest("hex");
 
     if (expectedSignature !== razorpay_signature) {
       return res.status(400).json({
         success: false,
-        error: "Invalid payment signature"
+        error: "Invalid signature"
       });
     }
 
-    // ✅ Generate key
     const newKey = {
       key: generateKey(),
-      expiry: new Date(Date.now() + finalDays * 86400000).toISOString(),
+      expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
       deviceId: null,
       createdAt: new Date().toISOString(),
       lastUsed: null,
@@ -237,12 +240,12 @@ if (existing) {
 
     const { error } = await supabase.from("licenses").insert([newKey]);
 
-if (error) {
-  return res.status(500).json({
-    success: false,
-    error: "Database error"
-  });
-}
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: "Database error"
+      });
+    }
 
     res.json({
       success: true,
@@ -370,12 +373,16 @@ app.post("/admin/extend-license", async (req, res) => {
 
   const { licenseKey, days } = req.body;
 
-  const { data: key } = await supabase
-    .from("licenses")
-    .select("*")
-    .eq("key", licenseKey)
-    .single();
+  const { data } = await supabase
+  .from("licenses")
+  .select("*")
+  .eq("key", licenseKey);
 
+const key = data?.[0];
+
+if (!key) {
+  return res.status(404).json({ success: false, error: "Key not found" });
+}
   const newExpiry = new Date(
     new Date(key.expiry).getTime() + days * 86400000
   ).toISOString();
@@ -417,16 +424,16 @@ app.post('/validate-license', async (req, res) => {
     return res.json({ success: false, valid: false });
   }
 
-  const { data: key } = await supabase
-    .from("licenses")
-    .select("*")
-    .eq("key", licenseKey)
-    .single();
+ const { data } = await supabase
+  .from("licenses")
+  .select("*")
+  .eq("key", licenseKey);
 
-  if (!key) {
-    return res.json({ success: false, valid: false });
-  }
+const key = data?.[0];
 
+if (!key) {
+  return res.json({ success: false, valid: false });
+}
   if (key.status !== "active") {
     return res.json({ success: false, valid: false });
   }
