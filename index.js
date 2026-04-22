@@ -244,6 +244,7 @@ app.get("/get-key-by-order/:orderId", async (req, res) => {
 
 const ADMIN_KEY = process.env.ADMIN_KEY || "admin";
 
+
 function checkAdmin(req, res) {
   if (req.headers["x-admin-key"] !== ADMIN_KEY) {
     res.status(401).json({ success: false });
@@ -272,6 +273,33 @@ app.post("/admin/login", (req, res) => {
 
   res.status(401).json({ success: false });
 });
+// ================= GET PRICING =================
+app.get("/admin/pricing", async (req, res) => {
+  if (req.headers["x-admin-key"] !== process.env.ADMIN_KEY) {
+    return res.status(401).json({ success: false });
+  }
+
+  const { data } = await supabase.from("pricing").select("*");
+
+  res.json({ success: true, pricing: data });
+});
+
+// ================= UPDATE PRICING =================
+app.post("/admin/update-pricing", async (req, res) => {
+  if (req.headers["x-admin-key"] !== process.env.ADMIN_KEY) {
+    return res.status(401).json({ success: false });
+  }
+
+  const { plan, price, days } = req.body;
+
+  await supabase.from("pricing").update({
+    price,
+    days
+  }).eq("plan", plan);
+
+  res.json({ success: true });
+});
+
 // ================== LICENSE MIDDLEWARE ==================
 async function requireLicense(req, res, next) {
   try {
