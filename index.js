@@ -263,6 +263,15 @@ app.post("/admin/delete-license", async (req, res) => {
   await supabase.from("licenses").delete().eq("key", req.body.licenseKey);
   res.json({ success: true });
 });
+app.post("/admin/login", (req, res) => {
+  const { password } = req.body;
+
+  if (password === process.env.ADMIN_PASSWORD) {
+    return res.json({ success: true });
+  }
+
+  res.status(401).json({ success: false });
+});
 // ================== LICENSE MIDDLEWARE ==================
 async function requireLicense(req, res, next) {
   try {
