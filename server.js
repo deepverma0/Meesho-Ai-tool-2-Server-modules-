@@ -7,6 +7,14 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createClient } from "@supabase/supabase-js";
+import rateLimit from "express-rate-limit";
+
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +39,13 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 }
 */
 const app = express();
+
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100
+}));
+
+
 app.use(express.static("public"));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -56,52 +71,38 @@ const openai = new OpenAI({
 /* ================== MULTER ================== */
 const upload = multer({ storage: multer.memoryStorage() });
 
-/* ================== DB ================== */
-const DB_FILE = "./db.json";
-
-function loadDB() {
-  if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({
-      licenses: [],
-      pricing: {
-        pro: { price: 999, days: 30 }
-      }
-    }, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(DB_FILE));
-}
-
-function saveDB(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-}
 
 function generateKey() {
   return "MEESHO-" + Math.random().toString(36).substr(2, 8).toUpperCase();
 }
 
 /* ================== LICENSE ================== */
-function validateLicenseCore(licenseKey, deviceId) {
-  const db = loadDB();
-  const key = db.licenses.find(k => k.key === licenseKey);
+async function validateLicenseCore(licenseKey, deviceId) {
+  const { data: key, error } = await supabase
+    .from("licenses")
+    .select("*")
+    .eq("key", licenseKey)
+    .single();
 
   if (!key) return { ok: false, error: "Invalid key" };
 
-if (!key.deviceId) {
-  key.deviceId = deviceId; // first login
-} else if (key.deviceId === deviceId) {
-  // same browser → allow relogin
-} else {
-  return { ok: false, error: "This license is already used in another browser" };
-}
+  // device lock
+  if (!key.deviceId) {
+    await supabase
+      .from("licenses")
+      .update({ deviceId })
+      .eq("key", licenseKey);
+  } else if (key.deviceId !== deviceId) {
+    return { ok: false, error: "Used in another browser" };
+  }
 
+  // expiry check
   const now = new Date();
   const expiry = new Date(key.expiry);
 
   if (now > expiry) {
     return { ok: false, error: "Expired" };
   }
-
-  saveDB(db);
 
   return {
     ok: true,
@@ -114,14 +115,14 @@ app.post('/logout', (req, res) => {
   res.json({ success: true });
 });
 
-function requireLicense(req, res, next) {
+async function requireLicense(req, res, next) {
   const { licenseKey, deviceId } = req.body;
 
   if (!licenseKey || !deviceId) {
     return res.status(401).json({ success: false });
   }
 
-  const result = validateLicenseCore(licenseKey, deviceId);
+  const result = await validateLicenseCore(licenseKey, deviceId);
   if (!result.ok) {
     return res.status(403).json({ success: false });
   }
@@ -133,8 +134,11 @@ app.post("/create-order", async (req, res) => {
   try {
     const { plan = "pro" } = req.body;
 
-  const db = loadDB();
-const pricing = db.pricing?.[plan];
+const { data: pricing } = await supabase
+  .from("pricing")
+  .select("*")
+  .eq("plan", plan)
+  .single();
 
 if (!pricing) {
   return res.status(400).json({
@@ -169,7 +173,7 @@ res.json({
   }
 });
 
-app.post("/verify-payment", (req, res) => {
+app.post("/verify-payment", async (req, res) => {
   try {
     const {
       razorpay_order_id,
@@ -179,9 +183,18 @@ app.post("/verify-payment", (req, res) => {
     } = req.body;
 
     // 🔒 Get plan from DB (NOT frontend days)
-    const db = loadDB();
-    const pricing = db.pricing?.[plan];
-  const existing = db.licenses.find(k => k.paymentId === razorpay_payment_id);
+    const { data: pricing } = await supabase
+  .from("pricing")
+  .select("*")
+  .eq("plan", plan)
+  .single();
+
+  const { data: existing } = await supabase
+  .from("licenses")
+  .select("paymentId")
+  .eq("paymentId", razorpay_payment_id)
+  .single();
+
 if (existing) {
   return res.status(400).json({
     success: false,
@@ -217,11 +230,19 @@ if (existing) {
       createdAt: new Date().toISOString(),
       lastUsed: null,
       status: "active",
-      paymentId: razorpay_payment_id
+      paymentId: razorpay_payment_id,
+      amount: pricing.price,
+      plan: plan
     };
 
-    db.licenses.push(newKey);
-    saveDB(db);
+    const { error } = await supabase.from("licenses").insert([newKey]);
+
+if (error) {
+  return res.status(500).json({
+    success: false,
+    error: "Database error"
+  });
+}
 
     res.json({
       success: true,
@@ -234,6 +255,13 @@ if (existing) {
   }
 });
 
+app.get("/admin/revenue", async (req, res) => {
+  const { data } = await supabase.from("licenses").select("*");
+
+  const totalRevenue = data.reduce((sum, l) => sum + (l.amount || 0), 0);
+
+  res.json({ totalRevenue });
+});
 /* ================== ADMIN ================== */
 const ADMIN_KEY = process.env.ADMIN_KEY || "admin";
 
@@ -245,13 +273,12 @@ function checkAdmin(req, res) {
   return true;
 }
 
-app.post("/admin/generate-key", (req, res) => {
+app.post("/admin/generate-key", async (req, res) => {
   if (req.headers["x-admin-key"] !== ADMIN_KEY) {
     return res.status(401).json({ success: false });
   }
 
   const { days = 30 } = req.body;
-  const db = loadDB();
 
  const newKey = {
   key: generateKey(),
@@ -262,19 +289,26 @@ app.post("/admin/generate-key", (req, res) => {
   status: "active"
 };
 
-  db.licenses.push(newKey);
-  saveDB(db);
+const { error } = await supabase.from("licenses").insert([newKey]);
 
+if (error) {
+  return res.status(500).json({
+    success: false,
+    error: "Database error"
+  });
+}
   res.json({ success: true, key: newKey });
 });
 
-app.get("/admin/stats", (req, res) => {
+app.get("/admin/stats", async (req, res) => {
   if (!checkAdmin(req, res)) return;
-  const db = loadDB();
+
+  const { data } = await supabase.from("licenses").select("*");
+
   const now = new Date();
 
-  const total = db.licenses.length;
-  const active = db.licenses.filter(k => new Date(k.expiry) > now).length;
+  const total = data.length;
+  const active = data.filter(k => new Date(k.expiry) > now).length;
   const expired = total - active;
 
   res.json({ total, active, expired });
@@ -293,148 +327,138 @@ app.post("/admin/login", (req, res) => {
 });
 
 
-app.get("/admin/licenses", (req, res) => {
-  if (req.headers["x-admin-key"] !== ADMIN_KEY) {
-    return res.status(401).json({ success: false });
-  }
+app.get("/admin/licenses", async (req, res) => {
+  if (!checkAdmin(req, res)) return;
 
-  const db = loadDB();
-  res.json({ success: true, licenses: db.licenses });
+  const { data } = await supabase.from("licenses").select("*");
+
+  res.json({ success: true, licenses: data });
 });
 
-app.post("/admin/reset-device", (req, res) => {
+
+
+app.post("/admin/reset-device", async (req, res) => {
   if (!checkAdmin(req, res)) return;
+
   const { licenseKey } = req.body;
 
-  const db = loadDB();
-  const key = db.licenses.find(k => k.key === licenseKey);
-
-  if (!key) return res.json({ success: false });
-
-  key.deviceId = null;
-  saveDB(db);
+  await supabase
+    .from("licenses")
+    .update({ deviceId: null })
+    .eq("key", licenseKey);
 
   res.json({ success: true });
 });
 
-app.post("/admin/delete-license", (req, res) => {
+
+
+app.post("/admin/delete-license", async (req, res) => {
   if (!checkAdmin(req, res)) return;
+
   const { licenseKey } = req.body;
 
-  const db = loadDB();
-  db.licenses = db.licenses.filter(k => k.key !== licenseKey);
-
-  saveDB(db);
+  await supabase
+    .from("licenses")
+    .delete()
+    .eq("key", licenseKey);
 
   res.json({ success: true });
 });
 
-app.post("/admin/extend-license", (req, res) => {
+app.post("/admin/extend-license", async (req, res) => {
   if (!checkAdmin(req, res)) return;
+
   const { licenseKey, days } = req.body;
 
-  const db = loadDB();
-  const key = db.licenses.find(k => k.key === licenseKey);
+  const { data: key } = await supabase
+    .from("licenses")
+    .select("*")
+    .eq("key", licenseKey)
+    .single();
 
-  if (!key) return res.json({ success: false });
+  const newExpiry = new Date(
+    new Date(key.expiry).getTime() + days * 86400000
+  ).toISOString();
 
-  const currentExpiry = new Date(key.expiry);
-  key.expiry = new Date(currentExpiry.getTime() + days * 86400000).toISOString();
+  await supabase
+    .from("licenses")
+    .update({ expiry: newExpiry })
+    .eq("key", licenseKey);
 
-  saveDB(db);
-
-  res.json({ success: true, newExpiry: key.expiry });
+  res.json({ success: true, newExpiry });
 });
-app.post("/admin/update-pricing", (req, res) => {
-  if (req.headers["x-admin-key"] !== ADMIN_KEY) {
-    return res.status(401).json({ success: false });
-  }
+
+
+
+app.post("/admin/update-pricing", async (req, res) => {
+  if (!checkAdmin(req, res)) return;
 
   const { plan, price, days } = req.body;
 
-  const db = loadDB();
-
-  if (!db.pricing) db.pricing = {};
-
-  db.pricing[plan] = {
-    price: Number(price),
-    days: Number(days)
-  };
-
-  saveDB(db);
+  await supabase
+    .from("pricing")
+    .upsert([{ plan, price: Number(price), days: Number(days) }]);
 
   res.json({ success: true });
 });
 
-app.get("/admin/pricing", (req, res) => {
-  const db = loadDB();
-  res.json({
-    success: true,
-    pricing: db.pricing || {}
-  });
+
+app.get("/admin/pricing", async (req, res) => {
+  const { data } = await supabase.from("pricing").select("*");
+
+  res.json({ success: true, pricing: data });
 });
 
-app.post('/validate-license', (req, res) => {
+
+app.post('/validate-license', async (req, res) => {
   const { licenseKey, deviceId } = req.body;
 
   if (!licenseKey || !deviceId) {
-    return res.json({ success: false, valid: false, error: "Missing data" });
+    return res.json({ success: false, valid: false });
   }
 
-  const db = loadDB();
-  const key = db.licenses.find(k => k.key === licenseKey);
+  const { data: key } = await supabase
+    .from("licenses")
+    .select("*")
+    .eq("key", licenseKey)
+    .single();
 
-  // 1️⃣ Check key exists
   if (!key) {
-    return res.json({ success: false, valid: false, error: "Invalid key" });
+    return res.json({ success: false, valid: false });
   }
 
-  // 2️⃣ Check status (ACTIVE / DISABLED)
   if (key.status !== "active") {
-    return res.json({
-      success: false,
-      valid: false,
-      error: "License disabled"
-    });
+    return res.json({ success: false, valid: false });
   }
 
-  // 3️⃣ ONE BROWSER LOCK
   if (!key.deviceId) {
-    key.deviceId = deviceId;
+    await supabase
+      .from("licenses")
+      .update({ deviceId })
+      .eq("key", licenseKey);
   } else if (key.deviceId !== deviceId) {
-    return res.json({
-      success: false,
-      valid: false,
-      error: "This license is already used in another browser"
-    });
+    return res.json({ success: false, valid: false });
   }
 
-  // 4️⃣ EXPIRY CHECK
   const now = new Date();
   const expiry = new Date(key.expiry);
 
   if (now > expiry) {
-    return res.json({
-      success: false,
-      valid: false,
-      error: "Expired"
-    });
+    return res.json({ success: false, valid: false });
   }
 
-  // 5️⃣ TRACK USAGE
-  key.lastUsed = new Date().toISOString();
-  saveDB(db);
+  await supabase
+    .from("licenses")
+    .update({ lastUsed: new Date().toISOString() })
+    .eq("key", licenseKey);
 
-  const remainingDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
-
-  // 6️⃣ SUCCESS RESPONSE
   res.json({
     success: true,
     valid: true,
-    expiry: key.expiry,
-    remainingDays
+    expiry: key.expiry
   });
 });
+
 
 // ── Prompts ───────────────────────────────────────────────────────────────────
 const TEXT_SYSTEM_PROMPT = `
