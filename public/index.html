@@ -280,22 +280,16 @@ async function startPayment() {
 // 🔥 LOAD PRICE FROM ADMIN
 async function loadPrice() {
   try {
-    const res = await fetch(API + "/admin/pricing", {
-      headers: {
-        "x-admin-key": "admin"
-      }
-    });
-
+    const res = await fetch(API + "/pricing"); // ✅ PUBLIC ROUTE
     const data = await res.json();
-   const price = data.pricing?.[0]?.price || 999;
-    
+
+    const price = data?.[0]?.price || 999;
+
     document.getElementById("price").innerText = price;
     document.getElementById("modalPrice").innerText = price;
 
   } catch (e) {
     console.log("Price fetch failed");
-    document.getElementById("price").innerText = 999;
-    document.getElementById("modalPrice").innerText = 999;
   }
 }
 </script>
