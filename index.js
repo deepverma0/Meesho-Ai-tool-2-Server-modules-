@@ -54,6 +54,8 @@ app.use(cors({
 app.options("*", cors());
 app.use(express.json());
 
+app.set("trust proxy", 1);
+
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100
@@ -275,6 +277,92 @@ console.log("PRICING:", pricing);
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  try {
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+    const signature = req.headers["x-razorpay-signature"];
+
+    const expected = crypto
+      .createHmac("sha256", secret)
+      .update(req.body)
+      .digest("hex");
+
+    if (signature !== expected) {
+      return res.status(400).send("Invalid signature");
+    }
+
+    const event = JSON.parse(req.body.toString());
+
+    // ✅ PAYMENT SUCCESS EVENT
+    if (event.event === "payment.captured") {
+      const payment = event.payload.payment.entity;
+
+      const paymentId = payment.id;
+      const amount = payment.amount / 100;
+
+      console.log("💰 Payment captured:", paymentId);
+
+      // 🔒 prevent duplicate
+      const { data: existing } = await supabase
+        .from("licenses")
+        .select("*")
+        .eq("paymentId", paymentId);
+
+      if (existing && existing.length > 0) {
+        return res.json({ status: "already processed" });
+      }
+
+      // 🔥 get latest pricing
+      const { data } = await supabase
+        .from("pricing")
+        .select("*")
+        .order("id", { ascending: false })
+        .limit(1);
+
+      const pricing = data?.[0];
+
+      const newKey = {
+        key: generateKey(),
+        expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+        deviceId: null,
+        createdAt: new Date().toISOString(),
+        status: "active",
+        paymentId: paymentId,
+        amount: pricing.price,
+        plan: pricing.plan
+      };
+
+      await supabase.from("licenses").insert([newKey]);
+
+      console.log("✅ License created:", newKey.key);
+    }
+
+    res.json({ status: "ok" });
+
+  } catch (err) {
+    console.error("WEBHOOK ERROR:", err);
+    res.status(500).send("error");
+  }
+});
+app.get("/get-key/:paymentId", async (req, res) => {
+  const { paymentId } = req.params;
+
+  const { data } = await supabase
+    .from("licenses")
+    .select("*")
+    .eq("paymentId", paymentId);
+
+  if (!data || data.length === 0) {
+    return res.json({ success: false });
+  }
+
+  res.json({
+    success: true,
+    key: data[0].key
+  });
 });
 
 app.get("/pricing", async (req, res) => {
