@@ -3,293 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Groow With Deep | Meesho AI Listing</title>
+
+<title>Meesho AI Tool</title>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Outfit:wght@400;600;900&display=swap" rel="stylesheet">
 
 <style>
-:root {
-  --pearl: #ffffff;
-  --snow: #f8fafc;
-  --meesho-pink: #ff47be;
-  --meesho-gradient: linear-gradient(135deg, #ff47be 0%, #ff1f8e 100%);
-  --ink: #0f172a;
-  --slate-600: #475569;
-  --glass: rgba(255, 255, 255, 0.7);
-  --border: rgba(226, 232, 240, 0.8);
-  --shadow-hd: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-}
-  /* PROFILE IMAGE UPGRADE */
-.pfp-img {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid var(--meesho-pink);
-  box-shadow: 0 10px 25px rgba(255, 71, 190, 0.25);
-  transition: 0.3s;
+body {
+  font-family: Arial;
+  background: #f5f5f5;
+  text-align: center;
+  padding: 40px;
 }
 
-.pfp-img:hover {
-  transform: scale(1.05);
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-* { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth;}
-body { background: var(--snow); color: var(--ink); overflow-x: hidden; line-height: 1.6; }
+img {
+  width: 120px;
+  margin-bottom: 20px;
+}
 
-/* --- BACKGROUND --- */
-.hd-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f1f5f9 100%); }
-.aurora-blur { position: absolute; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(255, 71, 190, 0.08) 0%, transparent 70%); filter: blur(100px); pointer-events: none; }
+h1 {
+  margin-bottom: 10px;
+}
 
-/* --- NAVIGATION --- */
-.header-wrapper { position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; padding: 20px; pointer-events: none; }
-.nav-bar { max-width: 1100px; margin: 0 auto; background: var(--glass); backdrop-filter: blur(20px) saturate(180%); padding: 12px 35px; border-radius: 100px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-hd); pointer-events: auto; border: 1px solid rgba(255, 255, 255, 0.5); }
+.price {
+  font-size: 40px;
+  font-weight: bold;
+  margin: 20px 0;
+}
 
-.btn-cta { background: var(--meesho-gradient); color: white; padding: 14px 32px; border-radius: 50px; border: none; font-weight: 800; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 10px 20px rgba(255, 71, 190, 0.2); font-size: 1rem; }
-.btn-cta:hover { transform: translateY(-2px) scale(1.03); }
+button {
+  background: #ff47be;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  border-radius: 10px;
+  cursor: pointer;
+}
 
-/* --- HERO SECTION --- */
-.main-content { padding: 160px 20px 100px; max-width: 1200px; margin: 0 auto; }
-.hero-split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 50px; align-items: center; margin-bottom: 80px; }
+button:hover {
+  opacity: 0.9;
+}
 
-/* Logo Scaled x10 relative to original design */
-.hero-branding img { height: 120px; width: auto; margin-bottom: 30px; display: block; }
-.hero-branding h1 { font-family: 'Outfit', sans-serif; font-size: clamp(2.8rem, 7vw, 5rem); letter-spacing: -2px; line-height: 1.05; background: linear-gradient(to right, #0f172a, #ff47be); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-branding p { font-size: 1.4rem; color: var(--slate-600); margin-top: 25px; }
+#success {
+  display: none;
+  margin-top: 20px;
+}
 
-.buy-panel { background: white; padding: 45px; border-radius: 40px; border: 1px solid var(--border); box-shadow: var(--shadow-hd); text-align: center; }
+.key {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 10px 0;
+  color: #ff47be;
+}
 
-/* --- BENTO GRID --- */
-.section-title { font-family: 'Outfit'; font-size: 2.5rem; margin: 80px 0 40px; text-align: center; }
-.bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-.card { background: var(--pearl); padding: 35px; border-radius: 35px; border: 1px solid var(--border); transition: 0.3s; }
-.card h3 { font-family: 'Outfit'; font-size: 1.5rem; margin-bottom: 12px; }
-.card p { font-size: 1rem; color: var(--slate-600); }
-.span-2 { grid-column: span 2; }
-.dark-card { background: var(--ink); color: white; border: none; }
-
-/* --- MODAL SYSTEM --- */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); z-index: 3000; display: none; justify-content: center; align-items: center; padding: 20px; }
-.modal-overlay.active { display: flex; }
-.modal-container { background: white; width: 100%; max-width: 520px; border-radius: 40px; box-shadow: 0 50px 100px rgba(0,0,0,0.3); overflow: hidden; animation: modalScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-@keyframes modalScale { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.modal-header { background: var(--meesho-gradient); padding: 40px 30px; color: white; text-align: center; position: relative; }
-.modal-content { padding: 35px; }
-
-/* Popup Product Details */
-.pop-feature { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px; text-align: left; }
-.pop-feature i { color: #10b981; font-style: normal; font-weight: 900; }
-.pop-feature div b { display: block; color: var(--ink); font-size: 0.95rem; }
-.pop-feature div span { font-size: 0.85rem; color: var(--slate-600); }
-
-/* Success Key Display */
-.key-box { background: #fdf2f8; border: 2px dashed var(--meesho-pink); padding: 20px; border-radius: 20px; margin: 20px 0; text-align: center; }
-.key-text { font-family: monospace; font-size: 1.6rem; color: var(--meesho-pink); font-weight: 800; letter-spacing: 2px; }
-
-.warning-banner { background: #fff7ed; border: 1px solid #ffedd5; padding: 15px; border-radius: 15px; margin-top: 20px; display: flex; gap: 10px; align-items: center; }
-.warning-banner span { color: #9a3412; font-size: 0.8rem; font-weight: 600; line-height: 1.4; text-align: left; }
-
-.download-link { background: var(--ink); color: white; padding: 18px; border-radius: 20px; display: block; text-align: center; text-decoration: none; font-weight: 800; margin-top: 15px; transition: 0.3s; }
-.download-link:hover { background: #1e293b; }
-
-/* --- ANIMATIONS --- */
-.fade-up { opacity: 0; transform: translateY(30px); transition: all 0.6s ease-out; }
-.fade-up.show { opacity: 1; transform: translateY(0); }
-
-@media (max-width: 950px) {
-  .hero-split { grid-template-columns: 1fr; text-align: center; }
-  .hero-branding { display: flex; flex-direction: column; align-items: center; }
-  .bento-grid { grid-template-columns: 1fr; }
-  .span-2 { grid-column: span 1; }
+.download {
+  display: block;
+  margin-top: 15px;
+  padding: 12px;
+  background: black;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="hd-canvas">
-  <div class="aurora-blur" id="blob"></div>
+<div class="container">
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Meesho_Logo_Full.png">
+
+<h1>Meesho AI Tool</h1>
+
+<p>Automate product listings, save time, grow faster.</p>
+
+<div class="price">₹<span id="price">...</span></div>
+
+<button onclick="startPayment()">Buy Now</button>
+
+<div id="success">
+  <h3>Payment Successful</h3>
+  <div class="key" id="generatedKey"></div>
+  <a href="/extension.zip" class="download">Download Extension</a>
 </div>
 
-<div class="header-wrapper">
-  <nav class="nav-bar">
-    <div style="font-weight: 900; font-family: 'Outfit'; font-size: 1.2rem; letter-spacing: -1px;">MEESHO<span style="color: var(--meesho-pink);">AI</span></div>
-    <button class="btn-cta" onclick="toggleModal()">GET ELITE</button>
-  </nav>
-</div>
+<p style="margin-top:20px; font-size:12px;">Developed by Deep Verma</p>
 
-<div class="main-content">
-  <section class="hero-split fade-up">
-    <div class="hero-branding">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Meesho_Logo_Full.png" alt="Meesho Logo">
-      <h1>Automate. Scale.<br>Grow Faster.</h1>
-      <p>The ultimate AI browser extension for Meesho sellers. Built by Deep Verma to turn hours of manual work into seconds.</p>
-    </div>
-
-    <div class="buy-panel">
-      <span style="text-transform: uppercase; font-size: 0.8rem; font-weight: 800; color: var(--meesho-pink); letter-spacing: 3px;">ELITE PRO LICENSE</span>
-      <div style="font-size: 3.5rem; font-weight: 900; font-family: 'Outfit'; margin: 10px 0;">
-  ₹<span id="price">...</span>
-  <small style="font-size: 1.2rem; color: var(--slate-600); font-weight: 400;">/mo</small>
-</div>
-      <p style="margin-bottom: 20px; color: var(--slate-600); font-size: 0.95rem;">Automate listings, save time, and scale with AI.</p>
-      <button class="btn-cta" style="width: 100%; padding: 22px;" onclick="toggleModal()">BUY PRO LICENSE</button>
-    </div>
-  </section>
-
-  <h2 class="section-title fade-up">⚙️ Core Automation Features</h2>
-  <div class="bento-grid">
-    <div class="card span-2 fade-up">
-      <h3>🚀 Bulk Listing Automation</h3>
-      <p>Upload and process multiple products at once. Generate listings for large catalogs without repeating tedious manual steps.</p>
-    </div>
-    <div class="card dark-card fade-up">
-      <h3>✍️ AI Content Studio</h3>
-      <p>High-quality descriptions and optimized titles tailored for Meesho search algorithms.</p>
-    </div>
-    <div class="card fade-up">
-      <h3>📋 Auto Form Filling</h3>
-      <p>Automatically fills required fields in the Meesho interface, reducing errors and fatigue.</p>
-    </div>
-    <div class="card fade-up">
-      <h3>🎯 Category Mapping</h3>
-      <p>Neural mapping precisely assigns correct categories and attributes instantly.</p>
-    </div>
-    <div class="card fade-up">
-      <h3>📦 SKU Generator</h3>
-      <p>Create structured, unique SKU codes for better product organization.</p>
-    </div>
-  </div>
-
-  <div class="card fade-up" style="margin-top: 80px; display: flex; align-items: center; gap: 30px; background: white;">
-<img src="/deep.jpg" class="pfp-img">
-    <div>
-      <h3 style="margin-bottom: 5px;">Built by Deep Verma</h3>
-      <p>Ecommerce creator dedicated to building practical tools that help sellers grow faster using automation.</p>
-    </div>
-  </div>
-
-  <div id="result"></div>
-</div>
-
-<div class="modal-overlay" id="modal">
-  <div class="modal-container">
-    
-    <div id="paymentState">
-      <div class="modal-header">
-        <h2 style="font-family: 'Outfit'; font-size: 2rem;">Elite Pro License</h2>
-        <p>Unlock 30 Days of Unlimited Automation</p>
-      </div>
-      <div class="modal-content">
-        <div class="pop-feature"><i>✓</i><div><b>Bulk Listing Engine</b><span>Upload 100+ products in minutes.</span></div></div>
-        <div class="pop-feature"><i>✓</i><div><b>AI Content Mapping</b><span>Automatic attribute detection.</span></div></div>
-        <div class="pop-feature"><i>✓</i><div><b>Safe Automation</b><span>Direct browser integration.</span></div></div>
-
-        <div style="background: var(--snow); padding: 20px; border-radius: 25px; border: 1px solid var(--border); margin: 20px 0; text-align: center;">
-          <span style="font-size: 0.75rem; font-weight: 800; color: var(--slate-600); letter-spacing: 1px;">TOTAL PRICE</span>
-          <div style="font-size: 2.5rem; font-weight: 900; color: var(--ink); font-family: 'Outfit';">
-  ₹<span id="modalPrice">...</span>
-</div>
-        </div>
-
-        <button class="btn-cta" style="width: 100%; padding: 20px; font-size: 1.1rem; border-radius: 20px;" onclick="startPayment()">SECURE CHECKOUT</button>
-        <p style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: var(--slate-600); cursor: pointer;" onclick="toggleModal()">Cancel & Return</p>
-      </div>
-    </div>
-
-    <div id="successState" style="display: none;">
-      <div class="modal-header" style="background: #059669;">
-        <h2 style="font-family: 'Outfit'; font-size: 2rem;">Success!</h2>
-        <p>Your license key is activated</p>
-      </div>
-      <div class="modal-content">
-        <p style="font-weight: 700; color: var(--ink); text-align: center;">COPY YOUR ACTIVATION KEY:</p>
-        <div class="key-box">
-          <span class="key-text" id="generatedKey">------</span>
-        </div>
-
-        <div class="warning-banner">
-          <div style="font-size: 1.2rem;">⚠️</div>
-          <span><b>Important:</b> This key is valid for 30 days. Please save it for re-login if you clear your browser data.</span>
-        </div>
-
-        <p style="margin-top: 25px; font-size: 0.9rem; font-weight: 700; color: var(--slate-600); text-align: center;">FINAL STEP: INSTALL EXTENSION</p>
-        <a href="YOUR_EXTENSION_DOWNLOAD_LINK" class="download-link">🚀 DOWNLOAD EXTENSION (.ZIP)</a>
-        
-        <button onclick="toggleModal()" style="width: 100%; background: none; border: none; margin-top: 20px; font-weight: 800; color: var(--meesho-pink); cursor: pointer;">FINISH</button>
-      </div>
-    </div>
-
-  </div>
 </div>
 
 <script>
-function toggleModal() { document.getElementById('modal').classList.toggle('active'); }
-
-// Background Animation
-const blob = document.getElementById('blob');
-let mx = 0, my = 0, bx = 0, by = 0;
-document.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; });
-function animate() {
-  bx += (mx - bx - window.innerWidth/2) * 0.05;
-  by += (my - by - window.innerHeight/2) * 0.05;
-  blob.style.transform = `translate(${bx}px, ${by}px)`;
-  requestAnimationFrame(animate);
-}
-animate();
-// run after everything loads
-window.addEventListener("DOMContentLoaded", () => {
-  loadPrice();
-});
-
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("show"); });
-}, { threshold: 0.1 });
-document.querySelectorAll(".fade-up").forEach(el => observer.observe(el));
-
-// Razorpay Logic
 const API = "https://grateful-wonder-production-20e4.up.railway.app";
+
+// Load price
+async function loadPrice() {
+  const res = await fetch(API + "/pricing?ts=" + Date.now());
+  const data = await res.json();
+  document.getElementById("price").innerText = data?.[0]?.price || 999;
+}
+
+loadPrice();
+
+// Payment
 async function startPayment() {
   try {
-    const res = await fetch(API + "/create-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: "pro" }) });
+    const res = await fetch(API + "/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: "pro" })
+    });
+
     const data = await res.json();
+
     const options = {
       key: "rzp_test_SgARnEVtkbjdvv",
       amount: data.order.amount,
       currency: "INR",
-      name: "Groow With Deep",
       order_id: data.order.id,
-      theme: { color: "#ff47be" },
+
       handler: async function (response) {
-        const verify = await fetch(API + "/verify-payment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...response, plan: "pro" }) });
-        const result = await verify.json();
-        
-        if (result.success) {
-            document.getElementById('paymentState').style.display = 'none';
-            document.getElementById('successState').style.display = 'block';
-            document.getElementById('generatedKey').innerText = result.key;
+        try {
+          const verify = await fetch(API + "/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...response,
+              plan: "pro"
+            })
+          });
+
+          const result = await verify.json();
+
+          if (result.success) {
+            document.getElementById("success").style.display = "block";
+            document.getElementById("generatedKey").innerText = result.key;
+          } else {
+            alert(result.error);
+          }
+
+        } catch (e) {
+          alert("Verification failed");
         }
       }
     };
+
     new Razorpay(options).open();
-  } catch (e) { alert("Server Busy. Try again."); }
-}
-// 🔥 LOAD PRICE FROM ADMIN
-async function loadPrice() {
-  try {
-    const res = await fetch(API + "/pricing"); // ✅ PUBLIC ROUTE
-    const data = await res.json();
-
-    const price = data?.[0]?.price || 999;
-
-    document.getElementById("price").innerText = price;
-    document.getElementById("modalPrice").innerText = price;
 
   } catch (e) {
-    console.log("Price fetch failed");
+    alert("Server error");
   }
 }
 </script>
