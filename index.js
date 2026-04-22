@@ -142,44 +142,54 @@ app.post("/create-order", async (req, res) => {
   try {
     const { plan = "pro" } = req.body;
 
-const { data: pricing } = await supabase
-  .from("pricing")
-  .select("*")
-  .eq("plan", plan)
-  .single();
+    console.log("PLAN:", plan);
 
-if (!pricing) {
-  return res.status(400).json({
-    success: false,
-    error: "Invalid plan"
-  });
-}
+    const { data, error } = await supabase
+      .from("pricing")
+      .select("*")
+      .eq("plan", plan);
+
+    console.log("SUPABASE DATA:", data);
+    console.log("SUPABASE ERROR:", error);
+
+    const pricing = data?.[0];
+
+    if (!pricing) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid plan (not found in DB)"
+      });
+    }
+
     if (!razorpay) {
-  return res.status(500).json({
-    success: false,
-    error: "Payment system not configured yet"
-  });
-}
+      return res.status(500).json({
+        success: false,
+        error: "Payment system not configured yet"
+      });
+    }
+
     const order = await razorpay.orders.create({
       amount: pricing.price * 100,
       currency: "INR",
       receipt: "receipt_" + Date.now()
     });
 
-res.json({
-  success: true,
-  order: {
-    id: order.id,
-    amount: order.amount
-  },
-  plan,
-  days: pricing.days
-});
+    res.json({
+      success: true,
+      order: {
+        id: order.id,
+        amount: order.amount
+      },
+      plan,
+      days: pricing.days
+    });
 
   } catch (err) {
+    console.error("CREATE ORDER ERROR:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 
 app.post("/verify-payment", async (req, res) => {
   try {
