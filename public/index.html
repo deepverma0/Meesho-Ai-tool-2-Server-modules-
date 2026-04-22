@@ -188,7 +188,9 @@
         <h4 style="margin:0">Activation Successful!</h4>
         <p style="font-size:12px">Save this license key:</p>
         <div class="key-box" id="generatedKey"></div>
-        <a href="/extension.zip" class="dl-link"><i class="fas fa-download"></i> Download Extension</a>
+        <a href="https://yourdomain.com/extension.zip" class="dl-link" target="_blank">
+  <i class="fas fa-download"></i> Download Extension
+</a>
       </div>
     </div>
 
@@ -221,7 +223,7 @@ async function startPayment(){
     const data = await res.json();
 
     const options = {
-      key: "rzp_test_SgARnEVtkbjdvv",
+      key: "rzp_live_SgWkxYOITLPdG7",
       amount: data.order.amount,
       currency: "INR",
       name: "Meesho AI Tool",
