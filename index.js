@@ -55,7 +55,11 @@ app.get("/pricing", async (req, res) => {
 });
 /* ================== MIDDLEWARE ================== */
 app.use(cors({
-  origin: ["https://grateful-wonder-production-20e4.up.railway.app"]
+  origin: [
+    "https://grateful-wonder-production-20e4.up.railway.app",
+    "http://127.0.0.1:5500",
+    "http://localhost:3000"
+  ]
 }));
 app.use(express.json());
 app.set("trust proxy", 1);
