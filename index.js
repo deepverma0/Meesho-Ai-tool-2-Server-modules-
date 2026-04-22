@@ -142,17 +142,16 @@ app.post("/create-order", async (req, res) => {
   try {
     const { plan = "pro" } = req.body;
 
-    console.log("PLAN:", plan);
-
     const { data, error } = await supabase
       .from("pricing")
       .select("*")
-      .eq("plan", plan);
-
-    console.log("SUPABASE DATA:", data);
-    console.log("SUPABASE ERROR:", error);
+      .eq("plan", plan)
+      .order("id", { ascending: false })
+      .limit(1);
 
     const pricing = data?.[0];
+
+    console.log("LATEST PRICING:", pricing);
 
     if (!pricing) {
       return res.status(400).json({
@@ -161,15 +160,8 @@ app.post("/create-order", async (req, res) => {
       });
     }
 
-    if (!razorpay) {
-      return res.status(500).json({
-        success: false,
-        error: "Payment system not configured yet"
-      });
-    }
-
     const order = await razorpay.orders.create({
-      amount: pricing.price * 100,
+      amount: Number(pricing.price) * 100,  // 🔥 ensure number
       currency: "INR",
       receipt: "receipt_" + Date.now()
     });
@@ -288,7 +280,10 @@ console.log("PRICING:", pricing);
 app.get("/pricing", async (req, res) => {
   const { data, error } = await supabase
     .from("pricing")
-    .select("*");
+   .select("*")
+  .order("id", { ascending: false })
+  .limit(1)
+ 
 
   if (error) {
     return res.status(500).json({ success: false });
