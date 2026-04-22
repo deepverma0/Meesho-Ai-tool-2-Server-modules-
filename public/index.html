@@ -3,62 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meesho AI Auto-Listing Tool</title>
+<title>Meesho AI Auto-Listing Tool | Scale Your Business</title>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-  text-align: center;
-  padding: 40px;
-}
+  :root {
+    --primary: #ff4791;
+    --bg: #0f172a;
+    --card-bg: #1e293b;
+    --text-muted: #94a3b8;
+  }
 
-button {
-  padding: 15px 30px;
-  font-size: 18px;
-  background: #ff4791;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-}
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: white;
+    line-height: 1.6;
+  }
 
-#success {
-  display: none;
-  margin-top: 20px;
-}
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+  }
 
-.key-box {
-  background: black;
-  padding: 10px;
-  margin-top: 10px;
-  font-family: monospace;
-  color: #4ade80;
-}
+  /* Header Section */
+  header {
+    margin-bottom: 50px;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #ff4791, #ff85b3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .badge {
+    background: rgba(255, 71, 145, 0.1);
+    color: var(--primary);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border: 1px solid var(--primary);
+  }
+
+  /* Product Card */
+  .product-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .description {
+    color: var(--text-muted);
+    margin-bottom: 30px;
+    text-align: left;
+  }
+
+  .features-list {
+    text-align: left;
+    margin: 20px 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .features-list li {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+  }
+
+  .features-list li::before {
+    content: "✓";
+    color: #4ade80;
+    margin-right: 10px;
+    font-weight: bold;
+  }
+
+  /* CTA Button */
+  .btn-buy {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.2rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s, background 0.2s;
+    box-shadow: 0 4px 15px rgba(255, 71, 145, 0.4);
+  }
+
+  .btn-buy:hover {
+    background: #e3367d;
+    transform: translateY(-2px);
+  }
+
+  /* Success/Status Box */
+  #status-container {
+    display: none;
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.2);
+    border: 1px dashed #4ade80;
+  }
+
+  .key-box {
+    background: #000;
+    padding: 15px;
+    margin: 15px 0;
+    font-family: 'Courier New', monospace;
+    color: #4ade80;
+    border-radius: 8px;
+    word-break: break-all;
+    border: 1px solid #333;
+  }
+
+  .download-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .download-link:hover { text-decoration: underline; }
+
+  footer {
+    margin-top: 50px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
 </style>
 </head>
 
 <body>
 
-<h1>Meesho AI Tool</h1>
+<div class="container">
+  <header>
+    <span class="badge">AI-POWERED AUTOMATION</span>
+    <h1>Meesho Auto-Listing Pro</h1>
+    <p>Upload 100s of products in minutes, not days.</p>
+  </header>
 
-<button onclick="startPayment()">BUY NOW</button>
+  <main class="product-card">
+    <div class="description">
+      <h3>Transform Your Seller Workflow</h3>
+      <p>The Meesho AI Auto-Listing Tool automates the tedious process of cataloging. Using advanced vision AI, it fills descriptions, selects categories, and optimizes keywords for maximum visibility.</p>
+      
+      <ul class="features-list">
+        <li>Bulk Image Upload & Background Removal</li>
+        <li>Smart AI Description Generator</li>
+        <li>Automated Category Mapping</li>
+        <li>One-Click License Activation</li>
+      </ul>
+    </div>
 
-<div id="success"></div>
+    <button class="btn-buy" onclick="startPayment()">GET INSTANT ACCESS</button>
+
+    <div id="status-container">
+      <div id="status-content"></div>
+    </div>
+  </main>
+
+  <footer>
+    Secure payment processed by Razorpay. 24/7 Support available.
+  </footer>
+</div>
 
 <script>
 const API = "https://grateful-wonder-production-20e4.up.railway.app";
 
+// Keep your logic exactly as requested
 async function loadPrice(){
   try {
     const res = await fetch(API + "/pricing");
     const data = await res.json();
-    console.log("Price:", data);
-  } catch(e){}
+    console.log("Price Loaded:", data);
+  } catch(e){ console.error("Price fetch failed"); }
 }
 loadPrice();
 
@@ -71,19 +203,16 @@ async function checkKeyLoop(){
       const res = await fetch(API + "/get-key-by-order/" + orderId);
       const data = await res.json();
 
-      console.log("Checking key:", data);
-
       if(data.success){
         clearInterval(interval);
-
-        document.getElementById("success").innerHTML = `
-          <h3>✅ Payment Successful</h3>
-          <p>Your License Key:</p>
+        document.getElementById("status-content").innerHTML = `
+          <h3 style="color:#4ade80">✅ Payment Successful</h3>
+          <p>Your License Key is ready:</p>
           <div class="key-box">${data.key}</div>
-          <a href="${API}/extension.zip" target="_blank">Download Extension</a>
+          <a href="${API}/extension.zip" class="download-link" target="_blank">⬇️ Download Chrome Extension</a>
         `;
       }
-    } catch(e){}
+    } catch(e){ console.log("Waiting for payment update..."); }
   }, 3000);
 }
 
@@ -96,35 +225,35 @@ async function startPayment(){
     });
 
     const data = await res.json();
-
-    // 🔥 IMPORTANT FIX
     localStorage.setItem("order_id", data.order.id);
 
     const options = {
-      key: "rzp_live_SgWkxYOITLPdG7",
+      key: "rzp_live_SgWkxYOITLPdG7", 
       amount: data.order.amount,
       currency: "INR",
       name: "Meesho AI Tool",
+      description: "Pro License Key",
       order_id: data.order.id,
-      handler: function () {
-        console.log("Payment success (UPI may delay)");
-      }
+      handler: function (response) {
+        console.log("Payment completed via UI");
+      },
+      theme: { color: "#ff4791" }
     };
 
-    new Razorpay(options).open();
+    const rzp = new Razorpay(options);
+    rzp.open();
 
-    // ✅ Loading UI
-    document.getElementById("success").style.display = "block";
-    document.getElementById("success").innerHTML = `
-      <h3>⏳ Processing Payment...</h3>
-      <p>Please complete payment and wait here.</p>
+    // Show processing state
+    document.getElementById("status-container").style.display = "block";
+    document.getElementById("status-content").innerHTML = `
+      <h3 style="color: #ffbd47">⏳ Verifying Transaction...</h3>
+      <p>Please complete the payment in the popup. Do not refresh this page.</p>
     `;
 
-    // ✅ Start checking for key
     checkKeyLoop();
 
-  }catch(e){
-    alert("Server error. Try again.");
+  } catch(e){
+    alert("Connection error. Please check your internet.");
   }
 }
 </script>
