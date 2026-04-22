@@ -37,8 +37,26 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
   console.log("✅ Razorpay ready");
 }
 
+// ================= PUBLIC PRICING =================
+app.get("/pricing", async (req, res) => {
+  try {
+    const { data } = await supabase
+      .from("pricing")
+      .select("*")
+      .order("id", { ascending: false })
+      .limit(1);
+
+    res.json({ success: true, pricing: data });
+
+  } catch (err) {
+    console.error("❌ pricing error:", err);
+    res.status(500).json({ success: false });
+  }
+});
 /* ================== MIDDLEWARE ================== */
-app.use(cors({ origin: "*" }));
+app.use(cors({
+  origin: ["https://grateful-wonder-production-20e4.up.railway.app"]
+}));
 app.use(express.json());
 app.set("trust proxy", 1);
 
@@ -160,14 +178,23 @@ app.post("/verify-payment", async (req, res) => {
       plan
     };
 
-    await supabase.from("licenses").insert([newKey]);
+    const { data: existing } = await supabase
+  .from("licenses")
+  .select("*")
+  .eq("paymentId", razorpay_payment_id);
 
-    res.json({ success: true, key: newKey.key });
+if (existing && existing.length > 0) {
+  return res.json({ success: true, key: existing[0].key });
+}
 
-  } catch (err) {
-    res.json({ success: false });
-  }
-});
+await supabase.from("licenses").insert([newKey]);
+
+res.json({ success: true, key: newKey.key });
+
+} catch (err) {
+  console.error("❌ VERIFY ERROR:", err);
+  res.json({ success: false });
+}
 
 // WEBHOOK (MAIN SYSTEM)
 app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (req, res) => {
@@ -188,6 +215,7 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
     if (event.event === "payment.captured") {
       const payment = event.payload.payment.entity;
 
+      // ✅ CHECK DUPLICATE
       const { data: existing } = await supabase
         .from("licenses")
         .select("*")
@@ -196,13 +224,24 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
       if (existing && existing.length > 0) {
         return res.json({ status: "duplicate" });
       }
-
+    await supabase.from("payments").insert([{
+  paymentId: payment.id,
+  orderId: payment.order_id,
+  amount: payment.amount,
+  createdAt: new Date().toISOString()
+}]);
+      // ✅ GET LATEST PRICING
       const { data } = await supabase
         .from("pricing")
         .select("*")
+        .order("id", { ascending: false })
         .limit(1);
 
       const pricing = data?.[0];
+      if (!pricing) {
+  console.log("❌ No pricing found");
+  return res.json({ ok: true });
+}
 
       const newKey = {
         key: generateKey(),
@@ -216,18 +255,23 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
       };
 
       await supabase.from("licenses").insert([newKey]);
-
+      await supabase.from("payments").insert([{
+  paymentId: payment.id,
+  orderId: payment.order_id,
+  amount: payment.amount,
+  createdAt: new Date().toISOString()
+}]);
+    console.log("💰 Payment:", payment.id, payment.amount);
       console.log("✅ KEY:", newKey.key);
     }
 
     res.json({ ok: true });
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ WEBHOOK ERROR:", err);
     res.status(500).send("error");
   }
 });
-
 // GET KEY
 app.get("/get-key-by-order/:orderId", async (req, res) => {
   const { data } = await supabase
@@ -296,6 +340,61 @@ app.post("/admin/update-pricing", async (req, res) => {
     price,
     days
   }).eq("plan", plan);
+
+  res.json({ success: true });
+});
+app.get("/admin/stats", async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+
+  const { data: licenses } = await supabase.from("licenses").select("*");
+  const { data: payments } = await supabase.from("payments").select("*");
+
+  const now = new Date();
+
+  const active = licenses.filter(l => new Date(l.expiry) > now).length;
+  const expired = licenses.filter(l => new Date(l.expiry) <= now).length;
+
+  const revenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  res.json({
+    success: true,
+    total: licenses.length,
+    active,
+    expired,
+    totalRevenue: revenue / 100
+  });
+});
+// ================= ADMIN GENERATE KEY =================
+app.post("/admin/generate-key", async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+
+  const { days = 30 } = req.body;
+
+  const newKey = {
+    key: generateKey(),
+    orderId: "ADMIN_" + Date.now(),
+    paymentId: null, // admin key
+    expiry: new Date(Date.now() + days * 86400000).toISOString(),
+    createdAt: new Date().toISOString(),
+    status: "active",
+    amount: 0,
+    plan: "admin"
+  };
+
+  await supabase.from("licenses").insert([newKey]);
+
+  res.json({ success: true, key: newKey });
+});
+// ================= RESET DEVICE =================
+app.post("/admin/reset-device", async (req, res) => {
+  if (!checkAdmin(req, res)) return;
+
+  const { licenseKey } = req.body;
+
+  await supabase
+    .from("licenses")
+    .update({ deviceId: null })
+    .eq("key", licenseKey);
 
   res.json({ success: true });
 });
