@@ -116,7 +116,13 @@ app.post("/create-order", async (req, res) => {
 
     const pricing = data?.[0];
     if (!pricing) return res.status(400).json({ success: false });
-
+    
+if (!razorpay) {
+  return res.status(500).json({
+    success: false,
+    error: "Payment not configured"
+  });
+}
     const order = await razorpay.orders.create({
       amount: Number(pricing.price) * 100,
       currency: "INR",
@@ -188,6 +194,12 @@ if (existing && existing.length > 0) {
 }
 
 await supabase.from("licenses").insert([newKey]);
+    await supabase.from("payments").insert([{
+  paymentId: razorpay_payment_id,
+  orderId: razorpay_order_id,
+  amount: pricing.price * 100,
+  createdAt: new Date().toISOString()
+}]);
 
 res.json({ success: true, key: newKey.key });
 
@@ -195,6 +207,7 @@ res.json({ success: true, key: newKey.key });
   console.error("❌ VERIFY ERROR:", err);
   res.json({ success: false });
 }
+});
 
 // WEBHOOK (MAIN SYSTEM)
 app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (req, res) => {
@@ -224,12 +237,7 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
       if (existing && existing.length > 0) {
         return res.json({ status: "duplicate" });
       }
-    await supabase.from("payments").insert([{
-  paymentId: payment.id,
-  orderId: payment.order_id,
-  amount: payment.amount,
-  createdAt: new Date().toISOString()
-}]);
+  
       // ✅ GET LATEST PRICING
       const { data } = await supabase
         .from("pricing")
