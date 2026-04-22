@@ -297,7 +297,65 @@ app.get("/get-key-by-order/:orderId", async (req, res) => {
 
   res.json({ success: true, key: data[0].key });
 });
+// ================= VALIDATE LICENSE =================
+app.post("/validate-license", async (req, res) => {
+  try {
+    const { licenseKey, deviceId } = req.body;
 
+    if (!licenseKey || !deviceId) {
+      return res.json({ success: false, valid: false });
+    }
+
+    const { data } = await supabase
+      .from("licenses")
+      .select("*")
+      .eq("key", licenseKey)
+      .limit(1);
+
+    const key = data?.[0];
+
+    if (!key) {
+      return res.json({ success: true, valid: false });
+    }
+
+    // bind device
+    if (!key.deviceId) {
+      await supabase
+        .from("licenses")
+        .update({ deviceId })
+        .eq("key", licenseKey);
+    } else if (key.deviceId !== deviceId) {
+      return res.json({
+        success: true,
+        valid: false,
+        error: "Device mismatch"
+      });
+    }
+
+    // expiry check
+    if (new Date() > new Date(key.expiry)) {
+      return res.json({
+        success: true,
+        valid: false,
+        error: "License expired"
+      });
+    }
+
+    return res.json({
+      success: true,
+      valid: true,
+      plan: key.plan,
+      expiry: key.expiry,
+      remainingDays: Math.ceil(
+        (new Date(key.expiry) - Date.now()) / (1000 * 60 * 60 * 24)
+      )
+    });
+
+  } catch (err) {
+    console.error("❌ VALIDATE ERROR:", err);
+    res.json({ success: false, valid: false });
+  }
+});
 /* ================== ADMIN ================== */
 
 const ADMIN_KEY = process.env.ADMIN_KEY || "admin";
