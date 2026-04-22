@@ -4,80 +4,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel</title>
+<title>Meesho AI Tool</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
-:root {
-  --bg: #050509;
-  --card: rgba(20,20,30,0.9);
-  --primary: #6366f1;
-  --gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
-  --text: #fff;
-  --muted: #aaa;
-}
-
 body {
   margin:0;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  color: white;
 }
 
 .container {
-  max-width: 900px;
-  margin: 50px auto;
-  padding: 20px;
-}
-
-.card {
-  background: var(--card);
-  padding: 30px;
+  max-width: 600px;
+  margin: 60px auto;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+  padding: 40px;
   border-radius: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  text-align: center;
 }
 
-h2 { margin:0 0 20px; }
+.logo {
+  width: 120px;
+  margin-bottom: 20px;
+}
 
-input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 8px;
-  margin-bottom: 15px;
-  border-radius: 10px;
-  border: none;
-  background: #111;
-  color: white;
+h1 {
+  margin: 10px 0;
+}
+
+.desc {
+  font-size: 14px;
+  color: #ddd;
+  margin-bottom: 25px;
+}
+
+.features {
+  text-align: left;
+  margin: 20px 0;
+}
+
+.features div {
+  margin: 8px 0;
+}
+
+.price {
+  font-size: 42px;
+  font-weight: bold;
+  margin: 20px 0;
 }
 
 button {
   width: 100%;
-  padding: 14px;
+  padding: 15px;
+  font-size: 18px;
   border-radius: 12px;
   border: none;
-  background: var(--gradient);
-  color: white;
+  background: white;
+  color: #6366f1;
   font-weight: bold;
   cursor: pointer;
 }
 
-button:hover { opacity: 0.9; }
+button:hover {
+  opacity: 0.9;
+}
 
-.stat {
-  font-size: 22px;
+#success {
+  display: none;
+  margin-top: 20px;
+  background: rgba(0,255,150,0.1);
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.key {
+  font-size: 20px;
+  font-weight: bold;
   margin: 10px 0;
 }
 
-#toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: var(--gradient);
-  padding: 10px 20px;
+.download {
+  display: block;
+  margin-top: 10px;
+  padding: 12px;
+  background: black;
+  color: white;
+  text-decoration: none;
   border-radius: 10px;
-  display:none;
 }
 </style>
 
@@ -87,105 +103,101 @@ button:hover { opacity: 0.9; }
 
 <div class="container">
 
-<div class="card">
-<h2>Pricing Control</h2>
+<img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/8/80/Meesho_Logo_Full.png">
 
-<label>Plan</label> <input id="planName" value="pro" readonly>
+<h1>Meesho AI Automation Tool</h1>
 
-<label>Price (₹)</label> <input id="planPrice" placeholder="Enter price">
+<p class="desc">
+Automate your Meesho listings with AI.  
+Save time, increase productivity, and grow faster.
+</p>
 
-<label>Days</label> <input id="planDays" placeholder="Enter days">
+<div class="features">
+  <div>✅ Auto product listing</div>
+  <div>✅ AI titles & descriptions</div>
+  <div>✅ Bulk upload support</div>
+  <div>✅ Beginner friendly</div>
+</div>
 
-<button onclick="updatePricing()">Update Pricing</button>
+<div class="price">₹<span id="price">...</span></div>
+
+<button onclick="startPayment()">Buy Now</button>
+
+<div id="success">
+  <h3>🎉 Payment Successful</h3>
+  <p>Your License Key:</p>
+  <div class="key" id="generatedKey"></div>
+
+  <!-- DOWNLOAD LINK -->
+
+<a href="/extension.zip" class="download">Download Extension</a>
 
 </div>
 
-<div class="card">
-<h2>Stats</h2>
-<div class="stat">Total: <span id="total">0</span></div>
-<div class="stat">Active: <span id="active">0</span></div>
-<div class="stat">Revenue: ₹<span id="revenue">0</span></div>
-</div>
+<p style="margin-top:20px;font-size:12px;">Developed by Deep Verma</p>
 
 </div>
-
-<div id="toast">Updated</div>
 
 <script>
 const API = "https://grateful-wonder-production-20e4.up.railway.app";
-const ADMIN_KEY = "Plesures@123";
 
-// Toast
-function showToast(msg){
-  const t = document.getElementById("toast");
-  t.innerText = msg;
-  t.style.display = "block";
-  setTimeout(()=> t.style.display="none",2000);
-}
-
-// Load pricing
-async function loadPricing(){
-  const res = await fetch(API + "/admin/pricing", {
-    headers: { "x-admin-key": ADMIN_KEY }
-  });
-  const d = await res.json();
-  const p = d.pricing?.[0];
-
-  document.getElementById("planPrice").value = p?.price || "";
-  document.getElementById("planDays").value = p?.days || "";
-}
-
-// FIXED UPDATE
-async function updatePricing(){
-  const plan = document.getElementById("planName").value;
-  const price = Number(document.getElementById("planPrice").value);
-  const days = Number(document.getElementById("planDays").value);
-
-  console.log("UPDATING:", {plan, price, days});
-
-  const res = await fetch(API + "/admin/update-pricing", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-admin-key": ADMIN_KEY
-    },
-    body: JSON.stringify({ plan, price, days })
-  });
-
+// LOAD PRICE
+async function loadPrice(){
+  const res = await fetch(API + "/pricing?ts=" + Date.now());
   const data = await res.json();
-  console.log("RESPONSE:", data);
+  document.getElementById("price").innerText = data?.[0]?.price || 999;
+}
+loadPrice();
 
-  if(data.success){
-    showToast("Pricing Updated ✅");
-    loadPricing();
-    loadStats();
-  } else {
-    alert(data.error);
+// PAYMENT
+async function startPayment(){
+  try{
+    const res = await fetch(API + "/create-order", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ plan:"pro" })
+    });
+
+    const data = await res.json();
+
+    const options = {
+      key: "rzp_test_SgARnEVtkbjdvv",
+      amount: data.order.amount,
+      currency: "INR",
+      order_id: data.order.id,
+
+      handler: async function(response){
+        try{
+          const verify = await fetch(API + "/verify-payment", {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({
+              ...response,
+              plan:"pro"
+            })
+          });
+
+          const result = await verify.json();
+
+          if(result.success){
+            document.getElementById("success").style.display = "block";
+            document.getElementById("generatedKey").innerText = result.key;
+          } else {
+            alert(result.error);
+          }
+
+        }catch(e){
+          alert("Verification failed");
+        }
+      }
+    };
+
+    new Razorpay(options).open();
+
+  }catch(e){
+    alert("Server error");
   }
 }
-
-// Stats
-async function loadStats(){
-  const res = await fetch(API + "/admin/stats", {
-    headers: { "x-admin-key": ADMIN_KEY }
-  });
-  const d = await res.json();
-
-  document.getElementById("total").innerText = d.total;
-  document.getElementById("active").innerText = d.active;
-
-  const priceRes = await fetch(API + "/admin/pricing", {
-    headers: { "x-admin-key": ADMIN_KEY }
-  });
-  const priceData = await priceRes.json();
-
-  const price = priceData.pricing?.[0]?.price || 0;
-  document.getElementById("revenue").innerText = d.total * price;
-}
-
-// INIT
-loadPricing();
-loadStats();
 </script>
 
 </body>
