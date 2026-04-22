@@ -287,8 +287,8 @@ async function loadPrice() {
     });
 
     const data = await res.json();
-    const price = data.pricing?.pro?.price || 999;
-
+   const price = data.pricing?.[0]?.price || 999;
+    
     document.getElementById("price").innerText = price;
     document.getElementById("modalPrice").innerText = price;
 
