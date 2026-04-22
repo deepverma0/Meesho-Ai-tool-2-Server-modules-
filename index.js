@@ -58,7 +58,8 @@ app.use(cors({
   origin: [
     "https://grateful-wonder-production-20e4.up.railway.app",
     "http://127.0.0.1:5500",
-    "http://localhost:3000"
+    "http://localhost:3000",
+     "null"
   ]
 }));
 app.use(express.json());
