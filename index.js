@@ -214,18 +214,23 @@ app.post("/verify-payment", async (req, res) => {
     }
 
     // 🔒 get pricing safely
-    const { data: pricing } = await supabase
-      .from("pricing")
-      .select("*")
-      .eq("plan", plan)
-      .single();
+   const { data, error: pricingError } = await supabase
+  .from("pricing")
+  .select("*")
+  .eq("plan", plan)
+  .order("id", { ascending: false })
+  .limit(1);
 
+const pricing = data?.[0];
+
+console.log("PRICING:", pricing);
+    
     if (!pricing) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid plan"
-      });
-    }
+  return res.status(400).json({
+    success: false,
+    error: "Invalid plan or pricing missing"
+  });
+}
 
     if (!razorpay) {
       return res.status(500).json({
