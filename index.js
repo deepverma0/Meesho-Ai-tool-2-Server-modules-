@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import multer from "multer";
-import OpenAI from "openai";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import path from "path";
@@ -9,6 +8,8 @@ import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
 import rateLimit from "express-rate-limit";
 
+/* ================== SETUP ================== */
+const app = express();
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -18,6 +19,7 @@ const supabase = createClient(
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/* ================== RAZORPAY ================== */
 let razorpay = null;
 
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
@@ -26,34 +28,11 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
     key_secret: process.env.RAZORPAY_KEY_SECRET
   });
   console.log("✅ Razorpay ready");
-} else {
-  console.log("❌ Razorpay NOT configured");
 }
 
-// temp 
-
-/* 
-let razorpay = null;
-if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-  razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-  });
-  console.log("✅ Razorpay initialized");
-} else {
-  console.log("⚠️ Razorpay not configured (running in dev mode)");
-}
-*/
-const app = express();
-/* ================== CORS ================== */
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-admin-key", "Authorization"]
-}));
-app.options("*", cors());
+/* ================== MIDDLEWARE ================== */
+app.use(cors({ origin: "*" }));
 app.use(express.json());
-
 app.set("trust proxy", 1);
 
 app.use(rateLimit({
@@ -61,32 +40,18 @@ app.use(rateLimit({
   max: 100
 }));
 
-
 app.use(express.static("public"));
 
-
+/* ================== BASIC ================== */
 const PORT = process.env.PORT || 5001;
-app.get("/test", (req, res) => {
-  res.send("TEST OK");
-});
 
 app.get("/", (req, res) => {
- res.sendFile(path.join(__dirname, "public", "index.html"));
-});
- 
-
-/* ================== OPENAI ================== */
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  timeout: 30000
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-/* ================== MULTER ================== */
-const upload = multer({ storage: multer.memoryStorage() });
-
-
+/* ================== HELPERS ================== */
 function generateKey() {
-  return "MEESHO-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+  return "MEESHO-" + Math.random().toString(36).substring(2, 10).toUpperCase();
 }
 
 /* ================== LICENSE ================== */
@@ -97,54 +62,27 @@ async function validateLicenseCore(licenseKey, deviceId) {
     .eq("key", licenseKey);
 
   const key = data?.[0];
+  if (!key) return { ok: false };
 
-  if (!key) return { ok: false, error: "Invalid key" };
-
-  // device lock
   if (!key.deviceId) {
-    await supabase
-      .from("licenses")
-      .update({ deviceId })
-      .eq("key", licenseKey);
+    await supabase.from("licenses").update({ deviceId }).eq("key", licenseKey);
   } else if (key.deviceId !== deviceId) {
-    return { ok: false, error: "Used in another browser" };
+    return { ok: false };
   }
 
-  const now = new Date();
-  const expiry = new Date(key.expiry);
+  if (new Date() > new Date(key.expiry)) return { ok: false };
 
-  if (now > expiry) {
-    return { ok: false, error: "Expired" };
-  }
-
-  return { ok: true, expiry: key.expiry };
+  return { ok: true };
 }
 
-app.post('/logout', (req, res) => {
-  // frontend logout only — DO NOT free device
-  res.json({ success: true });
-});
+/* ================== PAYMENT ================== */
 
-async function requireLicense(req, res, next) {
-  const { licenseKey, deviceId } = req.body;
-
-  if (!licenseKey || !deviceId) {
-    return res.status(401).json({ success: false });
-  }
-
-  const result = await validateLicenseCore(licenseKey, deviceId);
-  if (!result.ok) {
-    return res.status(403).json({ success: false });
-  }
-
-  next();
-}
-//order amount creation 
+// CREATE ORDER
 app.post("/create-order", async (req, res) => {
   try {
     const { plan = "pro" } = req.body;
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("pricing")
       .select("*")
       .eq("plan", plan)
@@ -152,39 +90,30 @@ app.post("/create-order", async (req, res) => {
       .limit(1);
 
     const pricing = data?.[0];
-
-    console.log("LATEST PRICING:", pricing);
-
-    if (!pricing) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid plan (not found in DB)"
-      });
-    }
+    if (!pricing) return res.status(400).json({ success: false });
 
     const order = await razorpay.orders.create({
-      amount: Number(pricing.price) * 100,  // 🔥 ensure number
+      amount: Number(pricing.price) * 100,
       currency: "INR",
-      receipt: "receipt_" + Date.now()
+      receipt: "order_" + Date.now()
     });
+
+    console.log("🧾 Order:", order.id);
 
     res.json({
       success: true,
-      order: {
-        id: order.id,
-        amount: order.amount
-      },
+      order: { id: order.id, amount: order.amount },
       plan,
       days: pricing.days
     });
 
   } catch (err) {
-    console.error("CREATE ORDER ERROR:", err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error(err);
+    res.status(500).json({ success: false });
   }
 });
 
-
+// VERIFY PAYMENT (fallback)
 app.post("/verify-payment", async (req, res) => {
   try {
     const {
@@ -194,201 +123,118 @@ app.post("/verify-payment", async (req, res) => {
       plan
     } = req.body;
 
-    // 🔒 prevent duplicate payment
-    const { data: existing } = await supabase
-      .from("licenses")
-      .select("paymentId")
-      .eq("paymentId", razorpay_payment_id);
-
-    if (existing && existing.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Payment already used"
-      });
-    }
-
-    // 🔒 get pricing safely
-   const { data, error: pricingError } = await supabase
-  .from("pricing")
-  .select("*")
-  .eq("plan", plan)
-  .order("id", { ascending: false })
-  .limit(1);
-
-const pricing = data?.[0];
-
-console.log("PRICING:", pricing);
-    
-    if (!pricing) {
-  return res.status(400).json({
-    success: false,
-    error: "Invalid plan or pricing missing"
-  });
-}
-
-    if (!razorpay) {
-      return res.status(500).json({
-        success: false,
-        error: "Payment system not configured"
-      });
-    }
-
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
-    const expectedSignature = crypto
+    const expected = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(body)
       .digest("hex");
 
-    if (expectedSignature !== razorpay_signature) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid signature"
-      });
+    if (expected !== razorpay_signature) {
+      return res.json({ success: false });
     }
+
+    const { data } = await supabase
+      .from("pricing")
+      .select("*")
+      .eq("plan", plan)
+      .limit(1);
+
+    const pricing = data?.[0];
 
     const newKey = {
       key: generateKey(),
-      expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
-      deviceId: null,
-      createdAt: new Date().toISOString(),
-      lastUsed: null,
-      status: "active",
+      orderId: razorpay_order_id,
       paymentId: razorpay_payment_id,
+      expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+      createdAt: new Date().toISOString(),
+      status: "active",
       amount: pricing.price,
-      plan: plan
+      plan
     };
 
-    const { error } = await supabase.from("licenses").insert([newKey]);
+    await supabase.from("licenses").insert([newKey]);
 
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: "Database error"
-      });
-    }
-
-    res.json({
-      success: true,
-      key: newKey.key,
-      expiry: newKey.expiry
-    });
+    res.json({ success: true, key: newKey.key });
 
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.json({ success: false });
   }
 });
 
+// WEBHOOK (MAIN SYSTEM)
 app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (req, res) => {
-  try {
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  console.log("🔥 WEBHOOK");
 
+  try {
     const signature = req.headers["x-razorpay-signature"];
 
     const expected = crypto
-      .createHmac("sha256", secret)
+      .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
       .update(req.body)
       .digest("hex");
 
-    if (signature !== expected) {
-      return res.status(400).send("Invalid signature");
-    }
+    if (signature !== expected) return res.status(400).send("Invalid");
 
     const event = JSON.parse(req.body.toString());
 
-    // ✅ PAYMENT SUCCESS EVENT
     if (event.event === "payment.captured") {
       const payment = event.payload.payment.entity;
 
-    const paymentId = payment.id;
-    const orderId = payment.order_id; // 🔥 VERY IMPORTANT
-    const amount = payment.amount / 100;
-
-      console.log("💰 Payment captured:", paymentId);
-
-      // 🔒 prevent duplicate
       const { data: existing } = await supabase
         .from("licenses")
         .select("*")
-        .eq("paymentId", paymentId);
+        .eq("paymentId", payment.id);
 
       if (existing && existing.length > 0) {
-        return res.json({ status: "already processed" });
+        return res.json({ status: "duplicate" });
       }
 
-      // 🔥 get latest pricing
       const { data } = await supabase
         .from("pricing")
         .select("*")
-        .order("id", { ascending: false })
         .limit(1);
 
       const pricing = data?.[0];
 
       const newKey = {
-  key: generateKey(),
-  orderId: orderId, // 🔥 THIS IS THE FIX
-  paymentId: paymentId,
-  expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
-  createdAt: new Date().toISOString(),
-  status: "active",
-  amount: pricing.price,
-  plan: pricing.plan
-};
+        key: generateKey(),
+        orderId: payment.order_id,
+        paymentId: payment.id,
+        expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+        createdAt: new Date().toISOString(),
+        status: "active",
+        amount: pricing.price,
+        plan: pricing.plan
+      };
 
       await supabase.from("licenses").insert([newKey]);
 
-      console.log("✅ License created:", newKey.key);
+      console.log("✅ KEY:", newKey.key);
     }
 
-    res.json({ status: "ok" });
+    res.json({ ok: true });
 
   } catch (err) {
-    console.error("WEBHOOK ERROR:", err);
+    console.error(err);
     res.status(500).send("error");
   }
 });
-app.get("/get-key/:paymentId", async (req, res) => {
-  const { paymentId } = req.params;
 
+// GET KEY
+app.get("/get-key-by-order/:orderId", async (req, res) => {
   const { data } = await supabase
     .from("licenses")
     .select("*")
-    .eq("paymentId", paymentId);
+    .eq("orderId", req.params.orderId);
 
-  if (!data || data.length === 0) {
-    return res.json({ success: false });
-  }
+  if (!data?.length) return res.json({ success: false });
 
-  res.json({
-    success: true,
-    key: data[0].key
-  });
+  res.json({ success: true, key: data[0].key });
 });
 
-app.get("/pricing", async (req, res) => {
-  const { data, error } = await supabase
-    .from("pricing")
-   .select("*")
-  .order("id", { ascending: false })
-  .limit(1)
- 
-
-  if (error) {
-    return res.status(500).json({ success: false });
-  }
-
-  res.json(data);
-});
-
-app.get("/admin/revenue", async (req, res) => {
-  const { data } = await supabase.from("licenses").select("*");
-
-  const totalRevenue = data.reduce((sum, l) => sum + (l.amount || 0), 0);
-
-  res.json({ totalRevenue });
-});
 /* ================== ADMIN ================== */
+
 const ADMIN_KEY = process.env.ADMIN_KEY || "admin";
 
 function checkAdmin(req, res) {
@@ -399,223 +245,17 @@ function checkAdmin(req, res) {
   return true;
 }
 
-app.post("/admin/generate-key", async (req, res) => {
-  if (req.headers["x-admin-key"] !== ADMIN_KEY) {
-    return res.status(401).json({ success: false });
-  }
-
-  const { days = 30 } = req.body;
-
- const newKey = {
-  key: generateKey(),
-  expiry: new Date(Date.now() + days * 86400000).toISOString(),
-  deviceId: null,
-  createdAt: new Date().toISOString(),
-  lastUsed: null,
-  status: "active"
-};
-
-const { error } = await supabase.from("licenses").insert([newKey]);
-
-if (error) {
-  return res.status(500).json({
-    success: false,
-    error: "Database error"
-  });
-}
-  res.json({ success: true, key: newKey });
-});
-
-app.get("/admin/stats", async (req, res) => {
-  if (!checkAdmin(req, res)) return;
-
-  const { data } = await supabase.from("licenses").select("*");
-
-  const now = new Date();
-
-  const total = data.length;
-  const active = data.filter(k => new Date(k.expiry) > now).length;
-  const expired = total - active;
-
-  res.json({ total, active, expired });
-});
-
-app.post("/admin/login", (req, res) => {
-  const { password } = req.body;
-
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "upanshu123";
-
-  if (password === ADMIN_PASSWORD) {
-    return res.json({ success: true });
-  }
-
-  return res.status(401).json({ success: false });
-});
-
-
 app.get("/admin/licenses", async (req, res) => {
   if (!checkAdmin(req, res)) return;
-
   const { data } = await supabase.from("licenses").select("*");
-
   res.json({ success: true, licenses: data });
 });
 
-
-
-app.post("/admin/reset-device", async (req, res) => {
-  if (!checkAdmin(req, res)) return;
-
-  const { licenseKey } = req.body;
-
-  await supabase
-    .from("licenses")
-    .update({ deviceId: null })
-    .eq("key", licenseKey);
-
-  res.json({ success: true });
-});
-
-
-
 app.post("/admin/delete-license", async (req, res) => {
   if (!checkAdmin(req, res)) return;
-
-  const { licenseKey } = req.body;
-
-  await supabase
-    .from("licenses")
-    .delete()
-    .eq("key", licenseKey);
-
+  await supabase.from("licenses").delete().eq("key", req.body.licenseKey);
   res.json({ success: true });
 });
-
-app.post("/admin/extend-license", async (req, res) => {
-  if (!checkAdmin(req, res)) return;
-
-  const { licenseKey, days } = req.body;
-
-  const { data } = await supabase
-  .from("licenses")
-  .select("*")
-  .eq("key", licenseKey);
-
-const key = data?.[0];
-
-if (!key) {
-  return res.status(404).json({ success: false, error: "Key not found" });
-}
-  const newExpiry = new Date(
-    new Date(key.expiry).getTime() + days * 86400000
-  ).toISOString();
-
-  await supabase
-    .from("licenses")
-    .update({ expiry: newExpiry })
-    .eq("key", licenseKey);
-
-  res.json({ success: true, newExpiry });
-});
-
-
-
-app.post("/admin/update-pricing", async (req, res) => {
-  if (!checkAdmin(req, res)) return;
-
-  const { plan, price, days } = req.body;
-
-  const { error } = await supabase
-    .from("pricing")
-    .update({
-      price: Number(price),
-      days: Number(days)
-    })
-    .eq("plan", plan);   // 🔥 ONLY UPDATE EXISTING
-
-  if (error) {
-    return res.status(500).json({ success: false, error: error.message });
-  }
-
-  res.json({ success: true });
-});
-
-
-app.get("/get-key-by-order/:orderId", async (req, res) => {
-  const { orderId } = req.params;
-
-  const { data } = await supabase
-    .from("licenses")
-    .select("*")
-    .eq("orderId", orderId);
-
-  if (!data || data.length === 0) {
-    return res.json({ success: false });
-  }
-
-  res.json({
-    success: true,
-    key: data[0].key
-  });
-});
-
-
-app.get("/admin/pricing", async (req, res) => {
-  const { data } = await supabase.from("pricing").select("*");
-
-  res.json({ success: true, pricing: data });
-});
-
-
-app.post('/validate-license', async (req, res) => {
-  const { licenseKey, deviceId } = req.body;
-
-  if (!licenseKey || !deviceId) {
-    return res.json({ success: false, valid: false });
-  }
-
- const { data } = await supabase
-  .from("licenses")
-  .select("*")
-  .eq("key", licenseKey);
-
-const key = data?.[0];
-
-if (!key) {
-  return res.json({ success: false, valid: false });
-}
-  if (key.status !== "active") {
-    return res.json({ success: false, valid: false });
-  }
-
-  if (!key.deviceId) {
-    await supabase
-      .from("licenses")
-      .update({ deviceId })
-      .eq("key", licenseKey);
-  } else if (key.deviceId !== deviceId) {
-    return res.json({ success: false, valid: false });
-  }
-
-  const now = new Date();
-  const expiry = new Date(key.expiry);
-
-  if (now > expiry) {
-    return res.json({ success: false, valid: false });
-  }
-
-  await supabase
-    .from("licenses")
-    .update({ lastUsed: new Date().toISOString() })
-    .eq("key", licenseKey);
-
-  res.json({
-    success: true,
-    valid: true,
-    expiry: key.expiry
-  });
-});
-
 
 // ── Prompts ───────────────────────────────────────────────────────────────────
 const TEXT_SYSTEM_PROMPT = `
