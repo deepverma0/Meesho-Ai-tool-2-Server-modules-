@@ -256,6 +256,61 @@ app.post("/admin/delete-license", async (req, res) => {
   await supabase.from("licenses").delete().eq("key", req.body.licenseKey);
   res.json({ success: true });
 });
+// ================== LICENSE MIDDLEWARE ==================
+async function requireLicense(req, res, next) {
+  try {
+    const { licenseKey, deviceId } = req.body;
+
+    if (!licenseKey || !deviceId) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing licenseKey or deviceId"
+      });
+    }
+
+    const { data } = await supabase
+      .from("licenses")
+      .select("*")
+      .eq("key", licenseKey)
+      .limit(1);
+
+    const key = data?.[0];
+
+    if (!key) {
+      return res.status(403).json({
+        success: false,
+        error: "Invalid license"
+      });
+    }
+
+    // bind device if first time
+    if (!key.deviceId) {
+      await supabase
+        .from("licenses")
+        .update({ deviceId })
+        .eq("key", licenseKey);
+    } else if (key.deviceId !== deviceId) {
+      return res.status(403).json({
+        success: false,
+        error: "Device mismatch"
+      });
+    }
+
+    // expiry check
+    if (new Date() > new Date(key.expiry)) {
+      return res.status(403).json({
+        success: false,
+        error: "License expired"
+      });
+    }
+
+    next();
+
+  } catch (err) {
+    console.error("❌ License middleware error:", err);
+    res.status(500).json({ success: false });
+  }
+}
 
 // ── Prompts ───────────────────────────────────────────────────────────────────
 const TEXT_SYSTEM_PROMPT = `
