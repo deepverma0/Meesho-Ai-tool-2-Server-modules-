@@ -542,6 +542,11 @@ async function requireLicense(req, res, next) {
     res.status(500).json({ success: false });
   }
 }
+//test 
+app.get("/test-db", async (req, res) => {
+  const { data, error } = await supabase.from("licenses").select("*").limit(1);
+  res.json({ data, error });
+});
 
 // ── Prompts ───────────────────────────────────────────────────────────────────
 const TEXT_SYSTEM_PROMPT = `
