@@ -20,6 +20,7 @@ async function loadPrice(){
 }
 loadPrice();
 
+
 // PAYMENT
 async function startPayment(){
   const btn = document.getElementById("buyBtn");
@@ -33,7 +34,7 @@ async function startPayment(){
     const res = await fetch(API + "/create-order", {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ plan:"pro" }) // ✅ FIXED
+      body: JSON.stringify({ plan:"pro" })
     });
 
     const data = await res.json();
@@ -42,24 +43,26 @@ async function startPayment(){
       throw new Error("Order creation failed");
     }
 
-    const rzp = new Razorpay({
-      key:"rzp_live_SgZ144vN2dpARF",
-      amount:data.order.amount,
-      currency:"INR",
-      name:"Meesho AI Pro",
-      description:"30 Days Access",
-      order_id:data.order.id,
+    const options = {
+      key: data.key || "rzp_test_xxxxxxxx", // 🔒 better: send from backend
+      amount: data.order.amount,
+      currency: "INR",
+      name: "Meesho AI Pro",
+      description: "30 Days Access",
+      order_id: data.order.id,
 
       handler: async function (response) {
-        status.innerText = "Verifying payment...";
+        status.innerText = "🔄 Verifying payment...";
 
         try {
           const verify = await fetch(API + "/verify-payment", {
             method:"POST",
             headers:{ "Content-Type":"application/json" },
             body: JSON.stringify({
-              ...response,
-              plan:"pro" // ✅ FIXED
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              plan:"pro"
             })
           });
 
@@ -75,19 +78,36 @@ async function startPayment(){
           console.error(err);
           status.innerText = "❌ Verification failed";
         }
-      }
-    });
 
+        btn.disabled = false;
+        btn.innerText = "Unlock 30 Days Access";
+      },
+
+      modal: {
+        ondismiss: function () {
+          status.innerText = "⚠ Payment cancelled";
+          btn.disabled = false;
+          btn.innerText = "Unlock 30 Days Access";
+        }
+      },
+
+      theme: {
+        color: "#6366f1"
+      }
+    };
+
+    const rzp = new Razorpay(options);
     rzp.open();
 
   } catch(e){
     console.error(e);
     status.innerText = "❌ " + e.message;
-  }
 
-  btn.disabled = false;
-  btn.innerText = "Unlock 30 Days Access";
+    btn.disabled = false;
+    btn.innerText = "Unlock 30 Days Access";
+  }
 }
+
 
 // SUCCESS UI
 function showSuccess(key){
@@ -97,6 +117,7 @@ function showSuccess(key){
   document.getElementById("result").innerHTML = `
     <div style="margin-top:20px; border-top:1px solid #eee; padding-top:20px">
       <h4 style="color:#22c55e;">✓ Access Granted</h4>
+      
       <div class="key-box" id="key">${key}</div>
 
       <button class="btn copy-btn" onclick="copyKey()">
@@ -110,6 +131,7 @@ function showSuccess(key){
   `;
 }
 
+
 // COPY
 function copyKey(){
   const key = document.getElementById("key").innerText;
@@ -117,8 +139,10 @@ function copyKey(){
   alert("Key copied!");
 }
 
+
 // DOWNLOAD
 function downloadExt(){
-  window.open("https://your-domain.com/extension.zip");
+  // 🔥 Replace with your actual Railway/Vercel hosted file
+  window.open(API + "/extension.zip");
 }
 </script>
