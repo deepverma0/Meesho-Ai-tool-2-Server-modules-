@@ -140,6 +140,43 @@ async function sendKeyEmail(to, key) {
 
 
 /* ================== PAYMENT ================== */
+app.get("/get-temp-key", async (req, res) => {
+  try {
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.socket.remoteAddress;
+
+    // ⏱ last 5 minutes
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+    // 1️⃣ check existing recent key
+    const { data: existing } = await supabase
+      .from("temp_keys")
+      .select("*")
+      .eq("ip", ip)
+      .gte("createdAt", fiveMinAgo)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      return res.json({ success: true, key: existing[0].key });
+    }
+
+    // 2️⃣ create new key
+    const newKey = generateKey();
+
+    await supabase.from("temp_keys").insert([{
+      key: newKey,
+      ip,
+      createdAt: new Date().toISOString()
+    }]);
+
+    return res.json({ success: true, key: newKey });
+
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+});
 app.get("/get-latest-key", async (req, res) => {
   const { data } = await supabase
     .from("licenses")
