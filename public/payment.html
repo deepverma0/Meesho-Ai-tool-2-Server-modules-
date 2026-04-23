@@ -6,14 +6,19 @@
 </head>
 
 <body style="background:#0f172a;color:white;text-align:center;padding-top:100px;">
+  <div id="app">
+  <p id="status">Initializing...</p>
+</div>
 
 <h2 id="status">Starting Payment...</h2>
 
-<script>
+<script><script>
 const API = "https://grateful-wonder-production-20e4.up.railway.app";
 
 async function start() {
   try {
+    document.getElementById("status").innerText = "Creating order...";
+
     const res = await fetch(API + "/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -22,30 +27,28 @@ async function start() {
 
     const data = await res.json();
 
-    // ✅ DEBUG HERE
     console.log("ORDER RESPONSE:", data);
 
-    // 🔥 SAFE HANDLING
-    const order = data.order || data;
-
-    if (!order.id || !order.amount) {
-      throw new Error("Invalid order data");
+    if (!data.success || !data.order) {
+      throw new Error("Invalid order response");
     }
 
     const options = {
-      key: "rzp_test_SgARnEVtkbjdvv",
-      amount: order.amount,
+      key: "rzp_test_SgARnEVtkbjdvv", // replace with live later
+      amount: data.order.amount,
       currency: "INR",
-      order_id: order.id,
+      order_id: data.order.id,
 
       handler: async function (response) {
-        document.getElementById("status").innerText = "Verifying...";
+        document.getElementById("status").innerText = "Verifying payment...";
 
         const verify = await fetch(API + "/verify-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            ...response,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
             plan: data.plan || "pro"
           })
         });
@@ -53,13 +56,9 @@ async function start() {
         const result = await verify.json();
 
         if (result.success) {
-          document.body.innerHTML = `
-            <h2>Payment Successful ✅</h2>
-            <h3>Your License Key:</h3>
-            <h1 style="color:#00ffa3">${result.key}</h1>
-          `;
+          showSuccess(result.key);
         } else {
-          document.body.innerHTML = `<h2>Verification Failed ❌</h2>`;
+          document.getElementById("status").innerText = "❌ Verification failed";
         }
       }
     };
@@ -73,7 +72,37 @@ async function start() {
   }
 }
 
+// 🔥 SUCCESS UI (better than replacing whole body)
+function showSuccess(key) {
+  document.getElementById("app").innerHTML = `
+    <div style="text-align:center;padding:40px">
+      <h2>🎉 Payment Successful</h2>
+      <p>Your License Key:</p>
+      <h1 style="color:#ec4899">${key}</h1>
+
+      <button onclick="copyKey('${key}')" 
+        style="padding:10px 20px;margin-top:10px;">
+        Copy Key
+      </button>
+
+      <br><br>
+
+      <a href="/extension.zip" download>
+        <button style="padding:10px 20px;background:#111;color:#fff;">
+          Download Extension
+        </button>
+      </a>
+    </div>
+  `;
+}
+
+function copyKey(key) {
+  navigator.clipboard.writeText(key);
+  alert("Copied!");
+}
+
 start();
+</script>
 </script>
 
 </body>
