@@ -90,7 +90,15 @@ confetti({particleCount:150,spread:80});
 // 🔥 load key
 async function loadKey(){
   try{
-    const res = await fetch(API + "/get-temp-key");
+   const paymentId = new URLSearchParams(window.location.search).get("payment_id");
+
+const res = await fetch(API + "/generate-key-from-payment", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ paymentId })
+});
     const data = await res.json();
 
     if(data.success){
