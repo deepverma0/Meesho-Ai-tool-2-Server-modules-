@@ -42,6 +42,12 @@ body{
   color:white;
   cursor:pointer;
 }
+
+.timer{
+  margin-top:10px;
+  font-size:13px;
+  color:#64748b;
+}
 </style>
 </head>
 
@@ -52,28 +58,51 @@ body{
 
   <div id="key" class="key">Generating your key...</div>
 
+  <p id="copy-status" style="font-size:13px;color:#22c55e;"></p>
+
+  <div class="timer" id="timer">Preparing your download...</div>
+
+  <br>
+
   <button class="btn" onclick="copyKey()">Copy Key</button>
 
   <br><br>
 
   <a href="https://drive.google.com/uc?export=download&id=1mQ4T2Sxi4u-0Oa2-AS7FrqcWal_mjYXi">
-    <button class="btn">Download Extension</button>
+    <button class="btn">Download Now</button>
   </a>
 </div>
 
 <script>
 const API = "https://grateful-wonder-production-20e4.up.railway.app";
+const DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1mQ4T2Sxi4u-0Oa2-AS7FrqcWal_mjYXi";
 
+// 🔒 prevent refresh spam
+if(sessionStorage.getItem("used")){
+  document.body.innerHTML = "<h2 style='text-align:center'>Session expired</h2>";
+} else {
+  sessionStorage.setItem("used", "true");
+}
+
+// 🎉 confetti
 confetti({particleCount:150,spread:80});
 
-// 🔥 fetch latest key
+// 🔥 load key
 async function loadKey(){
   try{
     const res = await fetch(API + "/get-temp-key");
     const data = await res.json();
 
     if(data.success){
-      document.getElementById("key").innerText = data.key;
+      const key = data.key;
+      document.getElementById("key").innerText = key;
+
+      // 📋 auto copy
+      navigator.clipboard.writeText(key);
+      document.getElementById("copy-status").innerText = "✔ Key copied to clipboard";
+
+      startTimer();
+
     }else{
       document.getElementById("key").innerText = "Error generating key";
     }
@@ -83,14 +112,30 @@ async function loadKey(){
   }
 }
 
-loadKey();
+// ⏳ countdown + redirect
+function startTimer(){
+  let seconds = 10;
+  const timerEl = document.getElementById("timer");
 
-// copy
+  const interval = setInterval(() => {
+    timerEl.innerText = "Redirecting to download in " + seconds + " seconds...";
+    seconds--;
+
+    if(seconds < 0){
+      clearInterval(interval);
+      window.location.href = DOWNLOAD_URL;
+    }
+  }, 1000);
+}
+
+// manual copy
 function copyKey(){
   const key = document.getElementById("key").innerText;
   navigator.clipboard.writeText(key);
   alert("Copied!");
 }
+
+loadKey();
 </script>
 
 </body>
