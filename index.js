@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
 import rateLimit from "express-rate-limit";
 const upload = multer({ storage: multer.memoryStorage() });
+import nodemailer from "nodemailer";
 /* ================== SETUP ================== */
 const app = express();
 
@@ -16,6 +17,16 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
+
+
+const transporter = nodemailer.createTransport({
+service: "gmail",
+auth: {
+user: process.env.EMAIL_USER,
+pass: process.env.EMAIL_PASS
+}
+});
+
 
 /* ================== OPENAI ================== */
 const openai = new OpenAI({
@@ -97,6 +108,33 @@ async function validateLicenseCore(licenseKey, deviceId) {
   if (new Date() > new Date(key.expiry)) return { ok: false };
 
   return { ok: true };
+}
+async function sendKeyEmail(to, key) {
+await transporter.sendMail({
+from: `"Meesho AI" <${process.env.EMAIL_USER}>`,
+to,
+subject: "🎉 Your Meesho AI License Key",
+html: ` <div style="font-family:sans-serif;padding:20px"> <h2 style="color:#ec4899;">Payment Successful 🎉</h2> <p>Your license key is ready:</p>
+
+```
+    <div style="background:#f1f5f9;padding:15px;
+                font-size:18px;font-weight:bold;
+                color:#22c55e;border-radius:8px;
+                text-align:center;">
+      ${key}
+    </div>
+
+    <p style="margin-top:15px;">
+      Use this key in your extension to activate Pro features.
+    </p>
+
+    <hr style="margin:20px 0">
+    <small>Meesho AI Tool</small>
+  </div>
+`
+```
+
+});
 }
 
 /* ================== PAYMENT ================== */
@@ -236,60 +274,91 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
 
     const event = JSON.parse(req.body.toString());
 
-    if (event.event === "payment.captured") {
-      const payment = event.payload.payment.entity;
+   if (event.event === "payment.captured") {
+const payment = event.payload.payment.entity;
 
-      // ✅ CHECK DUPLICATE
-      const { data: existing } = await supabase
-        .from("licenses")
-        .select("*")
-        .eq("paymentId", payment.id);
+// ✅ CHECK DUPLICATE
+const { data: existing } = await supabase
+.from("licenses")
+.select("*")
+.eq("paymentId", payment.id);
 
-      if (existing && existing.length > 0) {
-        return res.json({ status: "duplicate" });
-      }
-  
-      // ✅ GET LATEST PRICING
-      const { data } = await supabase
-        .from("pricing")
-        .select("*")
-        .order("id", { ascending: false })
-        .limit(1);
-
-      const pricing = data?.[0];
-      if (!pricing) {
-  console.log("❌ No pricing found");
-  return res.json({ ok: true });
+if (existing && existing.length > 0) {
+return res.json({ status: "duplicate" });
 }
 
-      const newKey = {
-        key: generateKey(),
-        orderId: payment.order_id,
-        paymentId: payment.id,
-        expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
-        createdAt: new Date().toISOString(),
-        status: "active",
-        amount: pricing.price,
-        plan: pricing.plan
-      };
-      
+// ✅ GET PRICING
+const { data } = await supabase
+.from("pricing")
+.select("*")
+.order("id", { ascending: false })
+.limit(1);
+
+const pricing = data?.[0];
+if (!pricing) {
+console.log("❌ No pricing found");
+return res.json({ ok: true });
+}
+
+// 🔥 GET CUSTOMER DETAILS FROM RAZORPAY
+const name = payment.customer_details?.name || "";
+const email = payment.customer_details?.email || "";
+const phone = payment.customer_details?.contact || "";
+
+const newKey = {
+key: generateKey(),
+orderId: payment.order_id,
+paymentId: payment.id,
+expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+createdAt: new Date().toISOString(),
+status: "active",
+amount: pricing.price,
+plan: pricing.plan,
+
+```
+// 🔥 SAVE USER DATA
+name,
+email,
+phone,
+note: "payment_button"
+```
+
+};
+
 const { error } = await supabase
-  .from("licenses")
-  .insert([newKey]);
+.from("licenses")
+.insert([newKey]);
 
 if (error) {
-  console.error("❌ WEBHOOK INSERT ERROR:", error);
-  return res.json({ ok: false });
+console.error("❌ WEBHOOK INSERT ERROR:", error);
+return res.json({ ok: false });
 }
-      await supabase.from("payments").insert([{
-  paymentId: payment.id,
-  orderId: payment.order_id,
-  amount: payment.amount,
-  createdAt: new Date().toISOString()
+
+console.log("✅ KEY:", newKey.key);
+
+// 🔥 SEND EMAIL HERE
+if (email) {
+try {
+await sendKeyEmail(email, newKey.key);
+console.log("📧 Email sent to:", email);
+} catch (err) {
+console.error("❌ Email failed:", err.message);
+}
+} else {
+console.log("⚠️ No email provided by Razorpay");
+}
+
+// SAVE PAYMENT
+await supabase.from("payments").insert([{
+paymentId: payment.id,
+orderId: payment.order_id,
+amount: payment.amount,
+createdAt: new Date().toISOString()
 }]);
-    console.log("💰 Payment:", payment.id, payment.amount);
-      console.log("✅ KEY:", newKey.key);
-    }
+
+console.log("💰 Payment:", payment.id, payment.amount);
+}
+
 
     res.json({ ok: true });
 
