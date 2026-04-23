@@ -109,33 +109,35 @@ async function validateLicenseCore(licenseKey, deviceId) {
 
   return { ok: true };
 }
+
+
 async function sendKeyEmail(to, key) {
-await transporter.sendMail({
-from: `"Meesho AI" <${process.env.EMAIL_USER}>`,
-to,
-subject: "🎉 Your Meesho AI License Key",
-html: ` <div style="font-family:sans-serif;padding:20px"> <h2 style="color:#ec4899;">Payment Successful 🎉</h2> <p>Your license key is ready:</p>
+  await transporter.sendMail({
+    from: `"Meesho AI" <${process.env.EMAIL_USER}>,
+    to,
+    subject: "🎉 Your Meesho AI License Key",
+    html: `
+      <div style="font-family:sans-serif;padding:20px">
+        <h2 style="color:#ec4899;">Payment Successful 🎉</h2>
+        <p>Your license key is ready:</p>
 
-```
-    <div style="background:#f1f5f9;padding:15px;
-                font-size:18px;font-weight:bold;
-                color:#22c55e;border-radius:8px;
-                text-align:center;">
-      ${key}
-    </div>
+        <div style="background:#f1f5f9;padding:15px;
+                    font-size:18px;font-weight:bold;
+                    color:#22c55e;border-radius:8px;
+                    text-align:center;">
+          ${key}
+        </div>
 
-    <p style="margin-top:15px;">
-      Use this key in your extension to activate Pro features.
-    </p>
+        <p style="margin-top:15px;">
+          Use this key in your extension to activate Pro features.
+        </p>
 
-    <hr style="margin:20px 0">
-    <small>Meesho AI Tool</small>
-  </div>
-`
-```
-
-});
+        <hr style="margin:20px 0">
+        <small>Meesho AI Tool</small>
+      </div>
+  });
 }
+
 
 /* ================== PAYMENT ================== */
 
