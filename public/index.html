@@ -1,3 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meesho AI Pro</title>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body{
+  background:#f8fafc;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:#1e293b;
+}
+
+/* CARD */
+.container{
+  background:white;
+  border-radius:16px;
+  padding:35px;
+  width:380px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* LOGO */
+.logo{
+  font-size:24px;
+  font-weight:bold;
+  color:#ec4899;
+  margin-bottom:10px;
+}
+
+/* TITLE */
+h1{
+  font-size:22px;
+  margin-bottom:5px;
+}
+
+.desc{
+  color:#64748b;
+  font-size:14px;
+  margin-bottom:20px;
+}
+
+/* PRICE */
+.price{
+  font-size:34px;
+  font-weight:bold;
+  margin:20px 0;
+}
+
+.price span{
+  font-size:14px;
+  color:#64748b;
+}
+
+/* FEATURES */
+.features{
+  text-align:left;
+  margin:20px 0;
+}
+
+.features li{
+  margin:10px 0;
+  list-style:none;
+  font-size:14px;
+}
+
+.features li::before{
+  content:"✔";
+  color:#ec4899;
+  margin-right:10px;
+}
+
+/* BUTTONS */
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+  cursor:pointer;
+  transition:0.25s;
+}
+
+.buy-btn{
+  background:#ec4899;
+  color:white;
+}
+
+.buy-btn:hover{
+  background:#db2777;
+}
+
+.copy-btn{
+  background:#22c55e;
+  color:white;
+  margin-top:10px;
+}
+
+.download-btn{
+  background:#0ea5e9;
+  color:white;
+  margin-top:10px;
+}
+
+/* KEY BOX */
+.key-box{
+  background:#f1f5f9;
+  padding:12px;
+  border-radius:8px;
+  margin-top:10px;
+  word-break:break-all;
+  font-size:13px;
+}
+
+/* STATUS */
+#status{
+  margin-top:12px;
+  font-size:14px;
+  color:#f59e0b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">Meesho AI</div>
+
+  <h1>Upgrade to Pro</h1>
+  <div class="desc">Automate your Meesho listings with AI</div>
+
+  <div id="price" class="price">Loading...</div>
+
+  <ul class="features">
+    <li>Auto Product Listing</li>
+    <li>AI Title Generator</li>
+    <li>Bulk Upload Support</li>
+    <li>1-Click Automation</li>
+  </ul>
+
+  <button id="buyBtn" class="btn buy-btn" onclick="startPayment()">
+    Unlock 30 Days Access
+  </button>
+
+  <div id="status"></div>
+  <div id="result"></div>
+
+</div>
+
 <script>
 const API = "https://grateful-wonder-production-20e4.up.railway.app";
 
@@ -14,7 +178,6 @@ async function loadPrice(){
     document.getElementById("price").innerHTML =
       `₹${p.price} <span>/ ${p.days} Days</span>`;
   } catch(e) {
-    console.error(e);
     document.getElementById("price").innerHTML = "⚠ Unable to load price";
   }
 }
@@ -43,16 +206,16 @@ async function startPayment(){
       throw new Error("Order creation failed");
     }
 
-    const options = {
-      key: data.key || "rzp_test_xxxxxxxx", // 🔒 better: send from backend
-      amount: data.order.amount,
-      currency: "INR",
-      name: "Meesho AI Pro",
-      description: "30 Days Access",
-      order_id: data.order.id,
+    const rzp = new Razorpay({
+      key: data.key || "rzp_test_xxxxx",
+      amount:data.order.amount,
+      currency:"INR",
+      name:"Meesho AI Pro",
+      description:"30 Days Access",
+      order_id:data.order.id,
 
       handler: async function (response) {
-        status.innerText = "🔄 Verifying payment...";
+        status.innerText = "Verifying payment...";
 
         try {
           const verify = await fetch(API + "/verify-payment", {
@@ -75,7 +238,6 @@ async function startPayment(){
           showSuccess(result.key);
 
         } catch(err){
-          console.error(err);
           status.innerText = "❌ Verification failed";
         }
 
@@ -85,22 +247,18 @@ async function startPayment(){
 
       modal: {
         ondismiss: function () {
-          status.innerText = "⚠ Payment cancelled";
+          status.innerText = "Payment cancelled";
           btn.disabled = false;
           btn.innerText = "Unlock 30 Days Access";
         }
       },
 
-      theme: {
-        color: "#6366f1"
-      }
-    };
+      theme: { color: "#ec4899" }
+    });
 
-    const rzp = new Razorpay(options);
     rzp.open();
 
   } catch(e){
-    console.error(e);
     status.innerText = "❌ " + e.message;
 
     btn.disabled = false;
@@ -109,40 +267,32 @@ async function startPayment(){
 }
 
 
-// SUCCESS UI
+// SUCCESS
 function showSuccess(key){
   document.getElementById("buyBtn").style.display = "none";
   document.getElementById("status").innerText = "";
 
   document.getElementById("result").innerHTML = `
-    <div style="margin-top:20px; border-top:1px solid #eee; padding-top:20px">
+    <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:20px">
       <h4 style="color:#22c55e;">✓ Access Granted</h4>
-      
       <div class="key-box" id="key">${key}</div>
 
-      <button class="btn copy-btn" onclick="copyKey()">
-        Copy License Key
-      </button>
-
-      <button class="btn download-btn" onclick="downloadExt()">
-        Download Extension
-      </button>
+      <button class="btn copy-btn" onclick="copyKey()">Copy License Key</button>
+      <button class="btn download-btn" onclick="downloadExt()">Download Extension</button>
     </div>
   `;
 }
 
-
-// COPY
 function copyKey(){
   const key = document.getElementById("key").innerText;
   navigator.clipboard.writeText(key);
   alert("Key copied!");
 }
 
-
-// DOWNLOAD
 function downloadExt(){
-  // 🔥 Replace with your actual Railway/Vercel hosted file
   window.open(API + "/extension.zip");
 }
 </script>
+
+</body>
+</html>
