@@ -113,7 +113,7 @@ async function validateLicenseCore(licenseKey, deviceId) {
 
 async function sendKeyEmail(to, key) {
   await transporter.sendMail({
-    from: `"Meesho AI" <${process.env.EMAIL_USER}>,
+    from: `"Meesho AI" <${process.env.EMAIL_USER}>`,
     to,
     subject: "🎉 Your Meesho AI License Key",
     html: `
@@ -308,23 +308,19 @@ const email = payment.customer_details?.email || "";
 const phone = payment.customer_details?.contact || "";
 
 const newKey = {
-key: generateKey(),
-orderId: payment.order_id,
-paymentId: payment.id,
-expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
-createdAt: new Date().toISOString(),
-status: "active",
-amount: pricing.price,
-plan: pricing.plan,
+  key: generateKey(),
+  orderId: payment.order_id,
+  paymentId: payment.id,
+  expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+  createdAt: new Date().toISOString(),
+  status: "active",
+  amount: pricing.price,
+  plan: pricing.plan,
 
-```
-// 🔥 SAVE USER DATA
-name,
-email,
-phone,
-note: "payment_button"
-```
-
+  name,
+  email,
+  phone,
+  note: "payment_button"
 };
 
 const { error } = await supabase
