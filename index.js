@@ -457,7 +457,16 @@ app.post("/admin/generate-key", async (req, res) => {
     plan: "admin"
   };
 
-  await supabase.from("licenses").insert([newKey]);
+ const { data, error } = await supabase
+  .from("licenses")
+  .insert([newKey]);
+
+if (error) {
+  console.error("❌ INSERT ERROR:", error);
+  return res.json({ success: false, error: error.message });
+}
+
+console.log("✅ KEY SAVED:", data);
 
   res.json({ success: true, key: newKey });
 });
