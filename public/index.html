@@ -79,6 +79,7 @@ body {
 
 .buy-btn { background:#ff4d94; }
 .download-btn { background:#22c55e; margin-top:10px; }
+.copy-btn { background:#6366f1; margin-top:10px; }
 
 .key-box {
   background:black;
@@ -87,11 +88,6 @@ body {
   margin-top:15px;
   border-radius:10px;
   word-break:break-all;
-}
-
-.copy-btn {
-  margin-top:10px;
-  background:#6366f1;
 }
 
 .status {
@@ -116,7 +112,7 @@ body {
 
 <div class="hero">
   <h1>Automate Your Meesho Listings</h1>
-  <p>Upload products in seconds using AI</p>
+  <p>AI-powered product uploads in seconds</p>
 </div>
 
 <div class="features">
@@ -177,13 +173,11 @@ async function startPayment(){
 
     if(!data.success){
       alert("Order failed");
-      btn.disabled = false;
-      btn.innerText = "Buy Now";
       return;
     }
 
     const rzp = new Razorpay({
-      key:"rzp_test_xxxxx", // ⚠️ use test key
+      key:"rzp_live_SgZ144vN2dpARF",
       amount:data.order.amount,
       currency:"INR",
       order_id:data.order.id,
@@ -205,7 +199,7 @@ async function startPayment(){
         if(result.success){
           showSuccess(result.key);
         } else {
-          alert("Verification failed");
+          alert("Payment verification failed");
         }
       }
     });
@@ -237,7 +231,7 @@ function showSuccess(key){
 function copyKey(){
   const key = document.getElementById("key").innerText;
   navigator.clipboard.writeText(key);
-  alert("Copied!");
+  alert("Key copied!");
 }
 
 // DOWNLOAD
