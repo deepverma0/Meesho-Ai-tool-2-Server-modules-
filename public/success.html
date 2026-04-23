@@ -69,13 +69,13 @@ confetti({particleCount:150,spread:80});
 // 🔥 fetch latest key
 async function loadKey(){
   try{
-    const res = await fetch(API + "/get-latest-key");
+    const res = await fetch(API + "/get-temp-key");
     const data = await res.json();
 
     if(data.success){
       document.getElementById("key").innerText = data.key;
     }else{
-      document.getElementById("key").innerText = "Check your email 📧";
+      document.getElementById("key").innerText = "Error generating key";
     }
 
   }catch{
