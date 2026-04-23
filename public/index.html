@@ -1,297 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meesho AI Pro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meesho AI Pro</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #1e293b; }
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        .card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; text-align: center; shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .logo { font-size: 28px; font-weight: 800; color: #ec4899; margin-bottom: 8px; }
+        h1 { font-size: 22px; margin-bottom: 8px; font-weight: 700; }
+        .desc { color: #64748b; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+        
+        .price-tag { font-size: 42px; font-weight: 800; margin-bottom: 24px; color: #0f172a; }
+        .price-tag span { font-size: 16px; color: #64748b; font-weight: 400; }
 
-<style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family: 'Segoe UI', sans-serif;
-}
+        .features { text-align: left; margin-bottom: 30px; }
+        .features li { list-style: none; margin: 12px 0; font-size: 14px; display: flex; align-items: center; }
+        .features li::before { content: "✓"; color: #ec4899; font-weight: bold; margin-right: 12px; background: #fdf2f8; padding: 2px 6px; border-radius: 50%; }
 
-body{
-  background:#f8fafc;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  color:#1e293b;
-}
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .buy-btn { background: #ec4899; color: white; }
+        .buy-btn:hover { background: #db2777; transform: translateY(-1px); }
+        .buy-btn:disabled { background: #94a3b8; cursor: not-allowed; }
 
-/* CARD */
-.container{
-  background:white;
-  border-radius:16px;
-  padding:35px;
-  width:380px;
-  text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,0.08);
-}
-
-/* LOGO */
-.logo{
-  font-size:24px;
-  font-weight:bold;
-  color:#ec4899;
-  margin-bottom:10px;
-}
-
-/* TITLE */
-h1{
-  font-size:22px;
-  margin-bottom:5px;
-}
-
-.desc{
-  color:#64748b;
-  font-size:14px;
-  margin-bottom:20px;
-}
-
-/* PRICE */
-.price{
-  font-size:34px;
-  font-weight:bold;
-  margin:20px 0;
-}
-
-.price span{
-  font-size:14px;
-  color:#64748b;
-}
-
-/* FEATURES */
-.features{
-  text-align:left;
-  margin:20px 0;
-}
-
-.features li{
-  margin:10px 0;
-  list-style:none;
-  font-size:14px;
-}
-
-.features li::before{
-  content:"✔";
-  color:#ec4899;
-  margin-right:10px;
-}
-
-/* BUTTONS */
-.btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:10px;
-  font-size:15px;
-  cursor:pointer;
-  transition:0.25s;
-}
-
-.buy-btn{
-  background:#ec4899;
-  color:white;
-}
-
-.buy-btn:hover{
-  background:#db2777;
-}
-
-.copy-btn{
-  background:#22c55e;
-  color:white;
-  margin-top:10px;
-}
-
-.download-btn{
-  background:#0ea5e9;
-  color:white;
-  margin-top:10px;
-}
-
-/* KEY BOX */
-.key-box{
-  background:#f1f5f9;
-  padding:12px;
-  border-radius:8px;
-  margin-top:10px;
-  word-break:break-all;
-  font-size:13px;
-}
-
-/* STATUS */
-#status{
-  margin-top:12px;
-  font-size:14px;
-  color:#f59e0b;
-}
-</style>
+        /* MODAL STYLES */
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .key-box { background: #f8fafc; border: 2px dashed #e2e8f0; padding: 15px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 16px; color: #ec4899; font-weight: bold; }
+        .status { margin-top: 15px; font-size: 13px; color: #64748b; min-height: 20px; }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
+    <div class="card">
+        <div class="logo">Meesho AI</div>
+        <h1>Go Pro Plan</h1>
+        <p class="desc">Automate your listings and skyrocket your sales with AI-powered tools.</p>
 
-  <div class="logo">Meesho AI</div>
+        <div id="price" class="price-tag">Loading...</div>
 
-  <h1>Upgrade to Pro</h1>
-  <div class="desc">Automate your Meesho listings with AI</div>
+        <ul class="features">
+            <li>Auto Product Listing</li>
+            <li>AI Title & Description</li>
+            <li>Bulk Upload Support</li>
+            <li>Lifetime Support</li>
+        </ul>
 
-  <div id="price" class="price">Loading...</div>
-
-  <ul class="features">
-    <li>Auto Product Listing</li>
-    <li>AI Title Generator</li>
-    <li>Bulk Upload Support</li>
-    <li>1-Click Automation</li>
-  </ul>
-
-  <button id="buyBtn" class="btn buy-btn" onclick="startPayment()">
-    Unlock 30 Days Access
-  </button>
-
-  <div id="status"></div>
-  <div id="result"></div>
-
+        <div style="margin-top:20px;">
+  <form>
+    <script src="https://checkout.razorpay.com/v1/payment-button.js"
+      data-payment_button_id="pl_Sguo3XJNYgUXep"
+      async>
+    </script>
+  </form>
 </div>
 
+
 <script>
-const API = "https://grateful-wonder-production-20e4.up.railway.app";
+    const API = "https://grateful-wonder-production-20e4.up.railway.app";
+    const statusEl = document.getElementById("status");
+    const buyBtn = document.getElementById("buyBtn");
 
-// LOAD PRICE
-async function loadPrice(){
-  try {
-    const res = await fetch(API + "/pricing");
-    const data = await res.json();
-
-    if(!data.success) throw new Error("Pricing API failed");
-
-    const p = data.pricing.find(i => i.plan === "pro") || data.pricing[0];
-
-    document.getElementById("price").innerHTML =
-      `₹${p.price} <span>/ ${p.days} Days</span>`;
-  } catch(e) {
-    document.getElementById("price").innerHTML = "⚠ Unable to load price";
-  }
-}
-loadPrice();
-
-
-// PAYMENT
-async function startPayment(){
-  const btn = document.getElementById("buyBtn");
-  const status = document.getElementById("status");
-
-  btn.disabled = true;
-  btn.innerText = "Connecting...";
-  status.innerText = "";
-
-  try {
-    const res = await fetch(API + "/create-order", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ plan:"pro" })
-    });
-
-    const data = await res.json();
-
-    if(!data.success || !data.order){
-      throw new Error("Order creation failed");
-    }
-
-    const rzp = new Razorpay({
-      key: data.key || "rzp_live_SgZ144vN2dpARF",
-      amount:data.order.amount,
-      currency:"INR",
-      name:"Meesho AI Pro",
-      description:"30 Days Access",
-      order_id:data.order.id,
-
-      handler: async function (response) {
-        status.innerText = "Verifying payment...";
-
+    // 1. Fetch Dynamic Price
+    async function loadPrice() {
         try {
-          const verify = await fetch(API + "/verify-payment", {
-            method:"POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              plan:"pro"
-            })
-          });
-
-          const result = await verify.json();
-
-          if(!result.success){
-            throw new Error("Verification failed");
-          }
-
-          showSuccess(result.key);
-
-        } catch(err){
-          status.innerText = "❌ Verification failed";
+            const res = await fetch(`${API}/pricing`);
+            const data = await res.json();
+            if(!data.success) throw new Error();
+            const p = data.pricing.find(i => i.plan === "pro") || data.pricing[0];
+            document.getElementById("price").innerHTML = `₹${p.price}<span> / ${p.days} Days</span>`;
+        } catch(e) {
+            document.getElementById("price").innerText = "₹499"; // Fallback
         }
-
-        btn.disabled = false;
-        btn.innerText = "Unlock 30 Days Access";
-      },
-
-      modal: {
-        ondismiss: function () {
-          status.innerText = "Payment cancelled";
-          btn.disabled = false;
-          btn.innerText = "Unlock 30 Days Access";
-        }
-      },
-
-      theme: { color: "#ec4899" }
-    });
-
-    rzp.open();
-
-  } catch(e){
-    status.innerText = "❌ " + e.message;
-
-    btn.disabled = false;
-    btn.innerText = "Unlock 30 Days Access";
-  }
-}
+    }
+    loadPrice();
 
 
-// SUCCESS
-function showSuccess(key){
-  document.getElementById("buyBtn").style.display = "none";
-  document.getElementById("status").innerText = "";
 
-  document.getElementById("result").innerHTML = `
-    <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:20px">
-      <h4 style="color:#22c55e;">✓ Access Granted</h4>
-      <div class="key-box" id="key">${key}</div>
-
-      <button class="btn copy-btn" onclick="copyKey()">Copy License Key</button>
-      <button class="btn download-btn" onclick="downloadExt()">Download Extension</button>
-    </div>
-  `;
-}
-
-function copyKey(){
-  const key = document.getElementById("key").innerText;
-  navigator.clipboard.writeText(key);
-  alert("Key copied!");
-}
-
-function downloadExt(){
-  window.open(API + "/extension.zip");
-}
+    function copyKey() {
+        const key = document.getElementById("key-display").innerText;
+        navigator.clipboard.writeText(key);
+        alert("Key copied to clipboard!");
+    }
 </script>
 
 </body>
