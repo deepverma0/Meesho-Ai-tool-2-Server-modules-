@@ -65,6 +65,7 @@ body{
   gap:20px;
 }
 
+/* NORMAL PLAN */
 .plan{
   background:white;
   border-radius:18px;
@@ -72,15 +73,18 @@ body{
   text-align:center;
   box-shadow:0 10px 30px rgba(0,0,0,0.06);
   transition:0.25s;
+  border:1px solid transparent; /* keep structure */
 }
 
+/* HOVER */
 .plan:hover{
   transform:translateY(-6px);
 }
 
+/* LIFETIME (ONLY BORDER HIGHLIGHT) */
 .plan.popular{
   border:2px solid #ec4899;
-  transform:scale(1.03);
+  transform:none; /* remove scaling */
 }
 
 .plan h3{
