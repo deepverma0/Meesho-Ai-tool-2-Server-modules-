@@ -279,21 +279,21 @@ app.post("/verify-payment", async (req, res) => {
 
     const pricing = data?.[0];
 
-    const newKey = {
-      key: generateKey(),
-      orderId: razorpay_order_id,
-      customer: {
-    name: "",
-    email: "",
-     phone: ""
-    },
-      paymentId: razorpay_payment_id,
-      expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
-      createdAt: new Date().toISOString(),
-      status: "active",
-      amount: pricing.price,
-      plan
-    };
+    // always generate new key (NOT SAFE FOR PRODUCTION)
+const newKey = {
+  key: generateKey(),
+  orderId: razorpay_order_id,
+  paymentId: razorpay_payment_id,
+  expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+  createdAt: new Date().toISOString(),
+  status: "active",
+  amount: pricing.price,
+  plan
+};
+
+await supabase.from("licenses").insert([newKey]);
+
+res.json({ success: true, key: newKey.key });
 
     const { data: existing } = await supabase
   .from("licenses")
