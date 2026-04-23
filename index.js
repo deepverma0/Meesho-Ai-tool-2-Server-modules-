@@ -175,6 +175,11 @@ app.post("/verify-payment", async (req, res) => {
     const newKey = {
       key: generateKey(),
       orderId: razorpay_order_id,
+      customer: {
+    name: "",
+    email: "",
+     phone: ""
+    },
       paymentId: razorpay_payment_id,
       expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
       createdAt: new Date().toISOString(),
@@ -447,29 +452,36 @@ app.get("/admin/stats", async (req, res) => {
 app.post("/admin/generate-key", async (req, res) => {
   if (!checkAdmin(req, res)) return;
 
-  const { days = 30 } = req.body;
+  const { days = 30, customer } = req.body;
 
   const newKey = {
     key: generateKey(),
     orderId: "ADMIN_" + Date.now(),
-    paymentId: null, // admin key
+    paymentId: null,
     expiry: new Date(Date.now() + days * 86400000).toISOString(),
     createdAt: new Date().toISOString(),
     status: "active",
     amount: 0,
-    plan: "admin"
+    plan: "admin",
+
+    // 🔥 ADD THIS
+    customer: {
+      name: customer?.name || "",
+      email: customer?.email || "",
+      phone: customer?.phone || "",
+      note: customer?.note || ""
+    }
   };
 
-const { data, error } = await supabase
-  .from("licenses")
-  .insert([newKey])
-  .select(); 
-if (error) {
-  console.error("❌ INSERT ERROR:", error);
-  return res.json({ success: false, error: error.message });
-}
+  const { data, error } = await supabase
+    .from("licenses")
+    .insert([newKey])
+    .select();
 
-console.log("✅ KEY SAVED:", data);
+  if (error) {
+    console.error("❌ INSERT ERROR:", error);
+    return res.json({ success: false, error: error.message });
+  }
 
   res.json({ success: true, key: data?.[0] });
 });
