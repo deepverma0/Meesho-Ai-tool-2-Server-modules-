@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payment Success</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+body{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:#f8fafc;
+  font-family:sans-serif;
+}
+
+.card{
+  background:white;
+  padding:30px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+.btn{
+  margin-top:15px;
+  padding:12px 20px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>🎉 Payment Successful</h2>
+
+  <p style="margin-top:10px">
+    📧 Your license key has been sent to your email
+  </p>
+
+  <a href="/extension.zip" download>
+    <button class="btn" style="background:#111;color:white">
+      ⬇ Download Extension
+    </button>
+  </a>
+
+  <br>
+
+  <a href="/">
+    <button class="btn">Go Back</button>
+  </a>
+</div>
+
+<script>
+confetti({
+  particleCount: 150,
+  spread: 80
+});
+</script>
+
+</body>
+</html>
