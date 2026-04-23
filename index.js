@@ -57,6 +57,7 @@ app.get("/pricing", async (req, res) => {
 app.use(cors({
   origin: [
     "https://grateful-wonder-production-20e4.up.railway.app",
+    "https://meesho-ai-tool-2-server-modules.vercel.app",
     "http://127.0.0.1:5500",
     "http://localhost:3000",
      "null",
