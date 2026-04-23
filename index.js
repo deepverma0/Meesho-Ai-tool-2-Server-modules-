@@ -300,6 +300,38 @@ app.post("/verify-payment", async (req, res) => {
   }
 });
 
+app.get("/generate-direct-key", async (req, res) => {
+  try {
+    const { data } = await supabase
+      .from("pricing")
+      .select("*")
+      .order("id", { ascending: false })
+      .limit(1);
+
+    const pricing = data?.[0];
+    if (!pricing) return res.json({ success: false });
+
+    const newKey = {
+      key: "MEESHO-" + Math.random().toString(36).substring(2, 10).toUpperCase(),
+      orderId: "DIRECT_" + Date.now(),
+      paymentId: null,
+      expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+      createdAt: new Date().toISOString(),
+      status: "active",
+      amount: pricing.price,
+      plan: pricing.plan
+    };
+
+    await supabase.from("licenses").insert([newKey]);
+
+    res.json({ success: true, key: newKey.key });
+
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+});
+
 app.post("/generate-key-from-payment", async (req, res) => {
   try {
     const { paymentId } = req.body;
