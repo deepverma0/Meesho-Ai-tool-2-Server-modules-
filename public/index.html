@@ -1,89 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meesho AI Pro</title>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #1e293b; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meesho AI Pro</title>
 
-        .card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; text-align: center; shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .logo { font-size: 28px; font-weight: 800; color: #ec4899; margin-bottom: 8px; }
-        h1 { font-size: 22px; margin-bottom: 8px; font-weight: 700; }
-        .desc { color: #64748b; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
-        
-        .price-tag { font-size: 42px; font-weight: 800; margin-bottom: 24px; color: #0f172a; }
-        .price-tag span { font-size: 16px; color: #64748b; font-weight: 400; }
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-        .features { text-align: left; margin-bottom: 30px; }
-        .features li { list-style: none; margin: 12px 0; font-size: 14px; display: flex; align-items: center; }
-        .features li::before { content: "✓"; color: #ec4899; font-weight: bold; margin-right: 12px; background: #fdf2f8; padding: 2px 6px; border-radius: 50%; }
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI'; }
+body { background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .buy-btn { background: #ec4899; color: white; }
-        .buy-btn:hover { background: #db2777; transform: translateY(-1px); }
-        .buy-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
 
-        /* MODAL STYLES */
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 100; }
-        .modal { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .key-box { background: #f8fafc; border: 2px dashed #e2e8f0; padding: 15px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 16px; color: #ec4899; font-weight: bold; }
-        .status { margin-top: 15px; font-size: 13px; color: #64748b; min-height: 20px; }
-    </style>
+.logo { font-size: 28px; font-weight: 800; color: #ec4899; }
+h1 { font-size: 22px; margin: 10px 0; }
+
+.desc { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+
+.price-tag { font-size: 42px; font-weight: 800; margin-bottom: 20px; }
+.price-tag span { font-size: 14px; color: #64748b; }
+
+.features li {
+  list-style: none;
+  margin: 10px 0;
+}
+
+.btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buy-btn { background: #ec4899; color: white; }
+
+#modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.key-box {
+  margin: 15px 0;
+  padding: 10px;
+  background: #f8fafc;
+  font-family: monospace;
+  font-weight: bold;
+  color: #ec4899;
+}
+
+.status { margin-top: 10px; font-size: 13px; color: gray; }
+</style>
 </head>
+
 <body>
 
-    <div class="card">
-        <div class="logo">Meesho AI</div>
-        <h1>Go Pro Plan</h1>
-        <p class="desc">Automate your listings and skyrocket your sales with AI-powered tools.</p>
+<!-- MAIN CARD -->
+<div class="card">
+  <div class="logo">Meesho AI</div>
+  <h1>Go Pro Plan</h1>
+  <p class="desc">Automate listings using AI 🚀</p>
 
-        <div id="price" class="price-tag">Loading...</div>
+  <div id="price" class="price-tag">Loading...</div>
 
-        <ul class="features">
-            <li>Auto Product Listing</li>
-            <li>AI Title & Description</li>
-            <li>Bulk Upload Support</li>
-            <li>Lifetime Support</li>
-        </ul>
+  <ul class="features">
+    <li>✔ Auto Listing</li>
+    <li>✔ AI Title & Description</li>
+    <li>✔ Bulk Upload</li>
+    <li>✔ Lifetime Support</li>
+  </ul>
 
-        <div style="margin-top:20px;">
-  <form>
-   <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_Sguo3XJNYgUXep" async> </script>
-  </form>
+  <button id="buyBtn" class="btn buy-btn">🚀 Buy Now</button>
+  <div id="status" class="status"></div>
 </div>
 
+<!-- POPUP -->
+<div id="modal-overlay">
+  <div class="modal">
+    <h2>🎉 Payment Successful</h2>
+    <p>Your License Key:</p>
+
+    <div id="key-display" class="key-box"></div>
+
+    <button class="btn buy-btn" onclick="copyKey()">📋 Copy Key</button>
+
+    <a href="/extension.zip" download>
+      <button class="btn" style="margin-top:10px;background:#111;color:white;">
+        ⬇ Download Extension
+      </button>
+    </a>
+
+    <p style="font-size:12px;margin-top:10px;">📧 Key sent to your email</p>
+
+    <button class="btn" onclick="closeModal()" style="margin-top:10px;">Close</button>
+  </div>
+</div>
 
 <script>
-    const API = "https://grateful-wonder-production-20e4.up.railway.app";
-    const statusEl = document.getElementById("status");
-    const buyBtn = document.getElementById("buyBtn");
+const API = "https://grateful-wonder-production-20e4.up.railway.app";
+const buyBtn = document.getElementById("buyBtn");
+const statusEl = document.getElementById("status");
 
-    // 1. Fetch Dynamic Price
-    async function loadPrice() {
-        try {
-            const res = await fetch(`${API}/pricing`);
-            const data = await res.json();
-            if(!data.success) throw new Error();
-            const p = data.pricing.find(i => i.plan === "pro") || data.pricing[0];
-            document.getElementById("price").innerHTML = `₹${p.price}<span> / ${p.days} Days</span>`;
-        } catch(e) {
-            document.getElementById("price").innerText = "₹499"; // Fallback
+// LOAD PRICE
+async function loadPrice() {
+  try {
+    const res = await fetch(API + "/pricing");
+    const data = await res.json();
+    const p = data.pricing[0];
+    document.getElementById("price").innerHTML =
+      `₹${p.price}<span> / ${p.days} Days</span>`;
+  } catch {
+    document.getElementById("price").innerText = "₹499";
+  }
+}
+loadPrice();
+
+// BUY FLOW
+buyBtn.onclick = async () => {
+  try {
+    statusEl.innerText = "Creating order...";
+
+    const res = await fetch(API + "/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: "pro" })
+    });
+
+    const data = await res.json();
+
+    const rzp = new Razorpay({
+      key: "rzp_live_SgZ144vN2dpARF", // 🔥 replace
+      amount: data.order.amount,
+      currency: "INR",
+      order_id: data.order.id,
+
+      handler: async (response) => {
+        statusEl.innerText = "Verifying...";
+
+        const verify = await fetch(API + "/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...response, plan: "pro" })
+        });
+
+        const result = await verify.json();
+
+        if (result.success) {
+          showKey(result.key);
         }
-    }
-    loadPrice();
+      }
+    });
 
+    rzp.open();
 
+  } catch {
+    statusEl.innerText = "Error starting payment";
+  }
+};
 
-    function copyKey() {
-        const key = document.getElementById("key-display").innerText;
-        navigator.clipboard.writeText(key);
-        alert("Key copied to clipboard!");
-    }
+// SHOW KEY + CONFETTI
+function showKey(key) {
+  document.getElementById("key-display").innerText = key;
+  document.getElementById("modal-overlay").style.display = "flex";
+
+  confetti({ particleCount: 150, spread: 70 });
+}
+
+// CLOSE
+function closeModal() {
+  document.getElementById("modal-overlay").style.display = "none";
+}
+
+// COPY
+function copyKey() {
+  const key = document.getElementById("key-display").innerText;
+  navigator.clipboard.writeText(key);
+  alert("Copied!");
+}
 </script>
 
 </body>
