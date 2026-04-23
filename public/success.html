@@ -1,16 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Success</title>
+<title>Payment Success</title>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-body{display:flex;justify-content:center;align-items:center;height:100vh;background:#f8fafc;font-family:sans-serif}
-.card{background:white;padding:30px;border-radius:16px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.1)}
-input{padding:10px;margin-top:10px;width:100%;border:1px solid #ccc;border-radius:6px}
-.btn{margin-top:10px;padding:10px 20px;border:none;border-radius:8px;background:#111;color:white;cursor:pointer}
-.key{margin-top:15px;padding:10px;background:#f1f5f9;font-family:monospace;color:#ec4899}
+body{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:#f8fafc;
+  font-family:sans-serif;
+}
+
+.card{
+  background:white;
+  padding:30px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+.key{
+  margin:15px 0;
+  padding:12px;
+  background:#f1f5f9;
+  font-family:monospace;
+  color:#ec4899;
+  font-weight:bold;
+  font-size:16px;
+}
+
+.btn{
+  margin-top:10px;
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -19,13 +50,11 @@ input{padding:10px;margin-top:10px;width:100%;border:1px solid #ccc;border-radiu
 <div class="card">
   <h2>🎉 Payment Successful</h2>
 
-  <p>Enter your email to get your key:</p>
+  <div id="key" class="key">Generating your key...</div>
 
-  <input id="email" placeholder="Enter email used in payment"/>
+  <button class="btn" onclick="copyKey()">Copy Key</button>
 
-  <button class="btn" onclick="getKey()">Get My Key</button>
-
-  <div id="key" class="key">Your key will appear here</div>
+  <br><br>
 
   <a href="/extension.zip" download>
     <button class="btn">Download Extension</button>
@@ -37,22 +66,30 @@ const API = "https://grateful-wonder-production-20e4.up.railway.app";
 
 confetti({particleCount:150,spread:80});
 
-async function getKey(){
-  const email = document.getElementById("email").value;
+// 🔥 fetch latest key
+async function loadKey(){
+  try{
+    const res = await fetch(API + "/get-latest-key");
+    const data = await res.json();
 
-  if(!email){
-    alert("Enter email");
-    return;
+    if(data.success){
+      document.getElementById("key").innerText = data.key;
+    }else{
+      document.getElementById("key").innerText = "Check your email 📧";
+    }
+
+  }catch{
+    document.getElementById("key").innerText = "Error loading key";
   }
+}
 
-  const res = await fetch(API + "/get-key-by-email/" + email);
-  const data = await res.json();
+loadKey();
 
-  if(data.success){
-    document.getElementById("key").innerText = data.key;
-  } else {
-    document.getElementById("key").innerText = "Key not found. Check email.";
-  }
+// copy
+function copyKey(){
+  const key = document.getElementById("key").innerText;
+  navigator.clipboard.writeText(key);
+  alert("Copied!");
 }
 </script>
 
