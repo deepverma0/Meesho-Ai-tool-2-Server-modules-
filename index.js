@@ -140,6 +140,20 @@ async function sendKeyEmail(to, key) {
 
 
 /* ================== PAYMENT ================== */
+app.get("/get-latest-key", async (req, res) => {
+  const { data } = await supabase
+    .from("licenses")
+    .select("*")
+    .order("createdAt", { ascending: false })
+    .limit(1);
+
+  if (!data || data.length === 0) {
+    return res.json({ success: false });
+  }
+
+  res.json({ success: true, key: data[0].key });
+});
+
 app.get("/get-key-by-email/:email", async (req, res) => {
   const email = req.params.email;
 
