@@ -87,9 +87,7 @@ async function validateLicenseCore(licenseKey, deviceId) {
     .eq("key", licenseKey);
 
   const key = data?.[0];
-  await supabase.from("licenses").insert([newKey]);
   if (!key) return { ok: false };
-
   if (!key.deviceId) {
     await supabase.from("licenses").update({ deviceId }).eq("key", licenseKey);
   } else if (key.deviceId && key.deviceId !== deviceId) {
@@ -194,7 +192,14 @@ if (existing && existing.length > 0) {
   return res.json({ success: true, key: existing[0].key });
 }
 
-await supabase.from("licenses").insert([newKey]);
+const { error } = await supabase
+  .from("licenses")
+  .insert([newKey]);
+
+if (error) {
+  console.error("❌ PAYMENT INSERT ERROR:", error);
+  return res.json({ success: false, error: error.message });
+}
     await supabase.from("payments").insert([{
   paymentId: razorpay_payment_id,
   orderId: razorpay_order_id,
@@ -262,8 +267,15 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
         amount: pricing.price,
         plan: pricing.plan
       };
+      
+const { error } = await supabase
+  .from("licenses")
+  .insert([newKey]);
 
-      await supabase.from("licenses").insert([newKey]);
+if (error) {
+  console.error("❌ WEBHOOK INSERT ERROR:", error);
+  return res.json({ ok: false });
+}
       await supabase.from("payments").insert([{
   paymentId: payment.id,
   orderId: payment.order_id,
