@@ -171,50 +171,57 @@ function scrollToBuy(){
 
 // PAYMENT
 async function startPayment(){
-  const res = await fetch(API + "/create-order", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ plan:"pro" })
-  });
+  try {
+    const res = await fetch(API + "/create-order", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ plan:"pro" })
+    });
 
-  const data = await res.json();
-  orderId = data.order.id;
-
-  const rzp = new Razorpay({
-    key:"rzp_live_SgZ144vN2dpARF",
-    amount:data.order.amount,
-    order_id:data.order.id,
-
-    handler: async function (response) {
-      const verify = await fetch(API + "/verify-payment", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ ...response, plan:"pro" })
-      });
-
-      const result = await verify.json();
-      if(result.success){
-        showKey(result.key);
-      }
-    }
-  });
-
-  rzp.open();
-  pollKey();
-}
-
-// POLL KEY
-function pollKey(){
-  const i = setInterval(async ()=>{
-    if(!orderId) return;
-    const res = await fetch(API + "/get-key-by-order/" + orderId);
     const data = await res.json();
-    if(data.success){
-      clearInterval(i);
-      showKey(data.key);
+
+    if(!data.success){
+      alert("❌ Order creation failed");
+      return;
     }
-  },3000);
+
+    const rzp = new Razorpay({
+      key:"rzp_test_xxxxx", // 🔥 FIXED
+      amount:data.order.amount,
+      currency:"INR",
+      order_id:data.order.id,
+
+      handler: async function (response) {
+        document.getElementById("status").innerHTML = "Verifying payment...";
+
+        const verify = await fetch(API + "/verify-payment", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({
+            ...response,
+            plan:"pro"
+          })
+        });
+
+        const result = await verify.json();
+
+        if(result.success){
+          showKey(result.key);
+        } else {
+          alert("❌ Payment verification failed");
+        }
+      }
+    });
+
+    rzp.open();
+
+  } catch (e) {
+    console.error(e);
+    alert("⚠ Payment error: " + e.message);
+  }
 }
+
+
 
 // SHOW KEY
 function showKey(key){
