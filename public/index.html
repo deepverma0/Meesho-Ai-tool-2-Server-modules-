@@ -233,15 +233,15 @@ function openPopup(){
 }
 
 async function fetchKeyWithRetry(retries=10){
-  const orderId = params.get("razorpay_order_id");
+ const paymentId = params.get("payment_id");
 
-  if(!orderId){
-    document.getElementById("key-display").innerText="Check email";
-    return;
-  }
+ if(!paymentId){
+  document.getElementById("key-display").innerText="Check email";
+  return;
+}
 
   for(let i=0;i<retries;i++){
-    const res = await fetch(API + "/get-key-by-order/" + orderId);
+    const res = await fetch(API + "/get-key-by-payment/" + paymentId);
     const data = await res.json();
 
     if(data.success){
