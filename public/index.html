@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -15,27 +16,14 @@ body {
   color:white;
 }
 
-/* ===== HEADER ===== */
 .header {
   padding:20px 40px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
 }
 
-.logo {
-  font-weight:bold;
-  font-size:20px;
-}
+.logo { font-weight:bold; }
 
-.buy-btn {
-  background:#ff4d94;
-  padding:10px 20px;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-/* ===== HERO ===== */
 .hero {
   text-align:center;
   padding:80px 20px;
@@ -48,12 +36,6 @@ body {
   -webkit-text-fill-color:transparent;
 }
 
-.hero p {
-  color:#94a3b8;
-  margin-top:10px;
-}
-
-/* ===== FEATURES ===== */
 .features {
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
@@ -67,17 +49,16 @@ body {
   border-radius:15px;
 }
 
-/* ===== BUY SECTION ===== */
 .buy-section {
-  text-align:center;
   padding:60px 20px;
+  text-align:center;
 }
 
 .card {
   background:#111827;
   padding:30px;
   border-radius:20px;
-  max-width:400px;
+  max-width:420px;
   margin:auto;
 }
 
@@ -89,44 +70,55 @@ body {
 .btn {
   width:100%;
   padding:15px;
-  background:#ff4d94;
   border:none;
   border-radius:10px;
   color:white;
   cursor:pointer;
+  font-weight:bold;
 }
+
+.buy-btn { background:#ff4d94; }
+.download-btn { background:#22c55e; margin-top:10px; }
 
 .key-box {
   background:black;
   color:#00ffa3;
   padding:15px;
-  margin-top:20px;
+  margin-top:15px;
+  border-radius:10px;
+  word-break:break-all;
 }
 
-/* ===== FOOTER ===== */
+.copy-btn {
+  margin-top:10px;
+  background:#6366f1;
+}
+
+.status {
+  margin-top:15px;
+  color:#aaa;
+}
+
 .footer {
   text-align:center;
   padding:30px;
   color:#64748b;
 }
 </style>
+
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="logo">MEESHO AI</div>
-  <div class="buy-btn" onclick="scrollToBuy()">Buy Now</div>
 </div>
 
-<!-- HERO -->
 <div class="hero">
   <h1>Automate Your Meesho Listings</h1>
-  <p>AI-powered product uploads in seconds</p>
+  <p>Upload products in seconds using AI</p>
 </div>
 
-<!-- FEATURES -->
 <div class="features">
   <div class="feature">⚡ One-click listing</div>
   <div class="feature">🤖 AI descriptions</div>
@@ -134,25 +126,29 @@ body {
   <div class="feature">📈 Smart pricing</div>
 </div>
 
-<!-- BUY -->
-<div class="buy-section" id="buy">
+<div class="buy-section">
   <div class="card">
-    <h2>Get Pro Access</h2>
-    <div class="price" id="price">Loading...</div>
-    <button class="btn" onclick="startPayment()">Buy Now</button>
-    <div id="status"></div>
+    <h2>🔥 Pro Access</h2>
+    <div id="price" class="price">Loading...</div>
+
+```
+<button id="buyBtn" class="btn buy-btn" onclick="startPayment()">
+  Buy Now
+</button>
+
+<div id="status" class="status"></div>
+<div id="result"></div>
+```
+
   </div>
 </div>
 
-<!-- FOOTER -->
 <div class="footer">
   © 2026 Meesho AI Tool
 </div>
 
 <script>
 const API = "https://grateful-wonder-production-20e4.up.railway.app";
-
-let orderId = null;
 
 // LOAD PRICE
 async function loadPrice(){
@@ -164,13 +160,12 @@ async function loadPrice(){
 }
 loadPrice();
 
-// SCROLL
-function scrollToBuy(){
-  document.getElementById("buy").scrollIntoView({behavior:"smooth"});
-}
-
 // PAYMENT
 async function startPayment(){
+  const btn = document.getElementById("buyBtn");
+  btn.disabled = true;
+  btn.innerText = "Processing...";
+
   try {
     const res = await fetch(API + "/create-order", {
       method:"POST",
@@ -181,18 +176,20 @@ async function startPayment(){
     const data = await res.json();
 
     if(!data.success){
-      alert("❌ Order creation failed");
+      alert("Order failed");
+      btn.disabled = false;
+      btn.innerText = "Buy Now";
       return;
     }
 
     const rzp = new Razorpay({
-      key:"rzp_live_SgZ144vN2dpARF",
+      key:"rzp_test_xxxxx", // ⚠️ use test key
       amount:data.order.amount,
       currency:"INR",
       order_id:data.order.id,
 
       handler: async function (response) {
-        document.getElementById("status").innerHTML = "Verifying payment...";
+        document.getElementById("status").innerText = "Verifying payment...";
 
         const verify = await fetch(API + "/verify-payment", {
           method:"POST",
@@ -206,9 +203,9 @@ async function startPayment(){
         const result = await verify.json();
 
         if(result.success){
-          showKey(result.key);
+          showSuccess(result.key);
         } else {
-          alert("❌ Payment verification failed");
+          alert("Verification failed");
         }
       }
     });
@@ -216,19 +213,36 @@ async function startPayment(){
     rzp.open();
 
   } catch (e) {
-    console.error(e);
-    alert("⚠ Payment error: " + e.message);
+    alert("Error: " + e.message);
   }
+
+  btn.disabled = false;
+  btn.innerText = "Buy Now";
 }
 
-
-
-// SHOW KEY
-function showKey(key){
-  document.getElementById("status").innerHTML = `
+// SUCCESS UI
+function showSuccess(key){
+  document.getElementById("result").innerHTML = `
     <h3>✅ Payment Successful</h3>
-    <div class="key-box">${key}</div>
+    <div class="key-box" id="key">${key}</div>
+
+    <button class="btn copy-btn" onclick="copyKey()">Copy Key</button>
+    <button class="btn download-btn" onclick="downloadExt()">
+      Download Extension
+    </button>
   `;
+}
+
+// COPY KEY
+function copyKey(){
+  const key = document.getElementById("key").innerText;
+  navigator.clipboard.writeText(key);
+  alert("Copied!");
+}
+
+// DOWNLOAD
+function downloadExt(){
+  window.open("https://your-domain.com/extension.zip");
 }
 </script>
 
