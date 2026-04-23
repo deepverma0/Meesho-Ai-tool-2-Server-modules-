@@ -232,27 +232,37 @@ function openPopup(){
   confetti({particleCount:150,spread:80});
 }
 
-async function fetchKeyWithRetry(retries=10){
- const paymentId = params.get("payment_id");
+async function fetchKeyWithRetry(){
+  const paymentId = params.get("payment_id");
 
- if(!paymentId){
-  document.getElementById("key-display").innerText="Check email";
-  return;
-}
-
-  for(let i=0;i<retries;i++){
-    const res = await fetch(API + "/get-key-by-payment/" + paymentId);
-    const data = await res.json();
-
-    if(data.success){
-      document.getElementById("key-display").innerText=data.key;
-      return;
-    }
-
-    await new Promise(r=>setTimeout(r,2000));
+  if(!paymentId){
+    document.getElementById("key-display").innerText="Check email";
+    return;
   }
 
-  document.getElementById("key-display").innerText="Sent to email";
+  document.getElementById("key-display").innerText="Generating your key...";
+
+  try {
+    const res = await fetch(API + "/generate-key-from-payment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ paymentId })
+    });
+
+    const data = await res.json();
+
+    if(data.success && data.key){
+      document.getElementById("key-display").innerText = data.key;
+    } else {
+      document.getElementById("key-display").innerText = "Check email";
+    }
+
+  } catch (err) {
+    console.log(err);
+    document.getElementById("key-display").innerText = "Error";
+  }
 }
 
 function copyKey(){
