@@ -279,53 +279,27 @@ app.post("/verify-payment", async (req, res) => {
 
     const pricing = data?.[0];
 
-    // always generate new key (NOT SAFE FOR PRODUCTION)
-const newKey = {
-  key: generateKey(),
-  orderId: razorpay_order_id,
-  paymentId: razorpay_payment_id,
-  expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
-  createdAt: new Date().toISOString(),
-  status: "active",
-  amount: pricing.price,
-  plan
-};
+    const newKey = {
+      key: generateKey(),
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+      expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+      createdAt: new Date().toISOString(),
+      status: "active",
+      amount: pricing.price,
+      plan
+    };
 
-await supabase.from("licenses").insert([newKey]);
+    await supabase.from("licenses").insert([newKey]);
 
-res.json({ success: true, key: newKey.key });
+    return res.json({ success: true, key: newKey.key });
 
-    const { data: existing } = await supabase
-  .from("licenses")
-  .select("*")
-  .eq("paymentId", razorpay_payment_id);
-
-if (existing && existing.length > 0) {
-  return res.json({ success: true, key: existing[0].key });
-}
-
-const { error } = await supabase
-  .from("licenses")
-  .insert([newKey]);
-
-if (error) {
-  console.error("❌ PAYMENT INSERT ERROR:", error);
-  return res.json({ success: false, error: error.message });
-}
-    await supabase.from("payments").insert([{
-  paymentId: razorpay_payment_id,
-  orderId: razorpay_order_id,
-  amount: pricing.price * 100,
-  createdAt: new Date().toISOString()
-}]);
-
-res.json({ success: true, key: newKey.key });
-
-} catch (err) {
-  console.error("❌ VERIFY ERROR:", err);
-  res.json({ success: false });
-}
+  } catch (err) {
+    console.error("❌ VERIFY ERROR:", err);
+    res.json({ success: false });
+  }
 });
+
 app.post("/generate-key-from-payment", async (req, res) => {
   try {
     const { paymentId } = req.body;
