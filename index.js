@@ -460,10 +460,10 @@ app.post("/admin/generate-key", async (req, res) => {
     plan: "admin"
   };
 
- const { data, error } = await supabase
+const { data, error } = await supabase
   .from("licenses")
-  .insert([newKey]);
-
+  .insert([newKey])
+  .select(); 
 if (error) {
   console.error("❌ INSERT ERROR:", error);
   return res.json({ success: false, error: error.message });
@@ -471,7 +471,7 @@ if (error) {
 
 console.log("✅ KEY SAVED:", data);
 
-  res.json({ success: true, key: newKey });
+  res.json({ success: true, key: data?.[0] });
 });
 // ================= RESET DEVICE =================
 app.post("/admin/reset-device", async (req, res) => {
