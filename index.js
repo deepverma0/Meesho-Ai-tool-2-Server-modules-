@@ -87,16 +87,7 @@ async function validateLicenseCore(licenseKey, deviceId) {
     .eq("key", licenseKey);
 
   const key = data?.[0];
-  // ✅ allow admin keys always
-if (key.plan === "admin") {
-  return res.json({
-    success: true,
-    valid: true,
-    plan: "admin",
-    expiry: key.expiry,
-    remainingDays: 999
-  });
-}
+  await supabase.from("licenses").insert([newKey]);
   if (!key) return { ok: false };
 
   if (!key.deviceId) {
