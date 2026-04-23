@@ -134,7 +134,7 @@ async function sendKeyEmail(to, key) {
 
         <hr style="margin:20px 0">
         <small>Meesho AI Tool</small>
-      </div>
+      </div>`
   });
 }
 
