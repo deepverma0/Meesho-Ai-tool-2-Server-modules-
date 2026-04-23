@@ -192,49 +192,44 @@ button{
   </div>
 
   <!-- PRICING -->
-  <div class="pricing">
+<div class="pricing">
 
-    <!-- 1 MONTH -->
-    <div class="plan">
-      <h3>Starter</h3>
-      <div class="price">₹499</div>
-      <p>1 Month Access</p>
+  <!-- LIFETIME (TOP + MOST POPULAR) -->
+  <div class="plan popular">
+    <div class="tag">🔥 Most Popular</div>
+    <h3>Lifetime</h3>
+    <div class="price">₹1299</div>
+    <p>Unlimited Access</p>
 
-      <form>
-        <script src="https://checkout.razorpay.com/v1/payment-button.js"
-        data-payment_button_id="pl_SgwBmOFvtCB8D4"
-        async></script>
-      </form>
-    </div>
+    <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_SgwDfqqq3HPvUy" async> </script> </form>
 
-    <!-- 3 MONTH -->
-    <div class="plan popular">
-      <div class="tag">Most Popular</div>
-      <h3>Pro</h3>
-      <div class="price">₹799</div>
-      <p>3 Months Access</p>
+  <!-- 3 MONTH -->
+  <div class="plan">
+    <h3>Pro</h3>
+    <div class="price">₹799</div>
+    <p>3 Months Access</p>
 
-      <form>
-        <script src="https://checkout.razorpay.com/v1/payment-button.js"
-        data-payment_button_id="pl_SgwCviPihVNJgF"
-        async></script>
-      </form>
-    </div>
-
-    <!-- LIFETIME -->
-    <div class="plan">
-      <h3>Lifetime</h3>
-      <div class="price">₹999</div>
-      <p>Unlimited Access</p>
-
-      <form>
-        <script src="https://checkout.razorpay.com/v1/payment-button.js"
-        data-payment_button_id="pl_SgwDfqqq3HPvUy"
-        async></script>
-      </form>
-    </div>
-
+    <form>
+      <script src="https://checkout.razorpay.com/v1/payment-button.js"
+      data-payment_button_id="pl_SgwCviPihVNJgF"
+      async></script>
+    </form>
   </div>
+
+  <!-- 1 MONTH (LAST) -->
+  <div class="plan">
+    <h3>Starter</h3>
+    <div class="price">₹499</div>
+    <p>1 Month Access</p>
+
+    <form>
+      <script src="https://checkout.razorpay.com/v1/payment-button.js"
+      data-payment_button_id="pl_SgwBmOFvtCB8D4"
+      async></script>
+    </form>
+  </div>
+
+</div>
 
 <!-- POPUP -->
 <div id="modal-overlay">
