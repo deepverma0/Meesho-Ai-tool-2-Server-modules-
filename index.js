@@ -259,6 +259,66 @@ res.json({ success: true, key: newKey.key });
   res.json({ success: false });
 }
 });
+app.post("/generate-key-from-payment", async (req, res) => {
+  try {
+    const { paymentId } = req.body;
+
+    if (!paymentId) {
+      return res.json({ success: false });
+    }
+
+    // check existing
+    const { data: existing } = await supabase
+      .from("licenses")
+      .select("*")
+      .eq("paymentId", paymentId);
+
+    if (existing && existing.length > 0) {
+      return res.json({ success: true, key: existing[0].key });
+    }
+
+    // fetch payment from Razorpay
+    const payment = await razorpay.payments.fetch(paymentId);
+
+    const amount = payment.amount / 100;
+
+    // match plan by price
+    const { data } = await supabase
+      .from("pricing")
+      .select("*")
+      .eq("price", amount)
+      .limit(1);
+
+    const pricing = data?.[0];
+    if (!pricing) return res.json({ success: false });
+
+    const newKey = {
+      key: generateKey(),
+      orderId: payment.order_id,
+      paymentId: payment.id,
+      expiry: new Date(Date.now() + pricing.days * 86400000).toISOString(),
+      createdAt: new Date().toISOString(),
+      status: "active",
+      amount: pricing.price,
+      plan: pricing.plan,
+      email: payment.email || "",
+      note: "instant"
+    };
+
+    await supabase.from("licenses").insert([newKey]);
+
+    // send email
+    if (newKey.email) {
+      await sendKeyEmail(newKey.email, newKey.key);
+    }
+
+    res.json({ success: true, key: newKey.key });
+
+  } catch (err) {
+    console.error("❌ instant key error:", err);
+    res.json({ success: false });
+  }
+});
 
 // WEBHOOK (MAIN SYSTEM)
 app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (req, res) => {
@@ -366,6 +426,18 @@ console.log("💰 Payment:", payment.id, payment.amount);
   }
 });
 // GET KEY
+
+app.get("/get-key-by-payment/:paymentId", async (req, res) => {
+  const { data } = await supabase
+    .from("licenses")
+    .select("*")
+    .eq("paymentId", req.params.paymentId);
+
+  if (!data?.length) return res.json({ success: false });
+
+  res.json({ success: true, key: data[0].key });
+});
+
 app.get("/get-key-by-order/:orderId", async (req, res) => {
   const { data } = await supabase
     .from("licenses")
