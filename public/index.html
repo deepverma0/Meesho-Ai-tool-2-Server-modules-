@@ -210,26 +210,6 @@
             header { flex-direction: column; gap: 10px; text-align: center; }
         }
 
-        /* Modal styling */
-        #loginBox {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -238,19 +218,7 @@
     <div class="logo">
         <h2>MEESHO AI AUTO LISTING</h2>
     </div>
-    <div class="signin" onclick="login()">Sign In / Register</div>
 </header>
-
-<div id="loginBox">
-    <div class="modal-content">
-        <h3>Welcome Back</h3>
-        <p style="color:#666; margin-bottom:15px;">Login to access your dashboard</p>
-        <input id="loginEmail" type="email" placeholder="Email Address">
-        <button class="pay-btn" onclick="doLogin()">Continue</button>
-        <button style="margin-top:10px; border:none; background:none; cursor:pointer; color:var(--accent)" onclick="closeLogin()">Cancel</button>
-    </div>
-</div>
-
 <div class="container">
     <div class="main-content">
         <div class="hero-box">
@@ -317,9 +285,6 @@
             <h3>Your Cart</h3>
             <div id="cartStatus" style="margin-bottom: 15px; color: #888;">No plan selected.</div>
             
-            <input type="text" placeholder="Your Name">
-            <input type="tel" placeholder="WhatsApp Number">
-            
             <div class="total-row">
                 <span>Total:</span>
                 <span>₹<span id="totalDisplay">0</span></span>
@@ -332,27 +297,6 @@
 </div>
 
 <script>
-    let cart = [];
-
-    function login() { document.getElementById("loginBox").style.display = "flex"; }
-    function closeLogin() { document.getElementById("loginBox").style.display = "none"; }
-
-    function doLogin() {
-        const email = document.getElementById("loginEmail").value;
-        if(!email) { alert("Please enter email"); return; }
-        localStorage.setItem("user", email);
-        closeLogin();
-        updateUser();
-    }
-
-    function updateUser() {
-        const user = localStorage.getItem("user");
-        const btn = document.querySelector(".signin");
-        if(user) {
-            btn.innerHTML = "Logout (" + user.split('@')[0] + ")";
-            btn.onclick = () => { localStorage.removeItem("user"); location.reload(); };
-        }
-    }
 
     function addItem(plan, price) {
         cart = [{plan, price}];
