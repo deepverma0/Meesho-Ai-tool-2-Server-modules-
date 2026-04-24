@@ -1,370 +1,448 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meesho AI Pro | Automation Simplified</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <style>
-        :root {
-            --primary: #ec4899;
-            --primary-dark: #be185d;
-            --bg-gradient: linear-gradient(135deg, #fff5f8 0%, #ffffff 100%);
-            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meesho AI Tool</title>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+<style>
+:root {
+    --primary:#4b1d3f;
+    --accent:#ff3f8e;
+    --bg:#f6f7fb;
+}
 
-        body {
-            background: var(--bg-gradient);
-            color: var(--text-main);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
+body{
+    margin:0;
+    font-family:sans-serif;
+    background:var(--bg);
+}
 
-        /* HERO SECTION */
-        .hero {
-            text-align: center;
-            padding: 80px 20px 40px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
+.container{
+    display:flex;
+    max-width:1200px;
+    margin:auto;
+    gap:30px;
+    padding:20px;
+    align-items:flex-start;
+}
 
-        .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            background: linear-gradient(to right, #ec4899, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 15px;
-        }
+.left{ flex:2; }
+.right{ flex:1; width:100%; }
 
-        .hero p {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto;
-        }
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
 
-        .container {
-            max-width: 1100px;
-            margin: auto;
-            padding: 20px;
-        }
+.signin{
+    background:var(--primary);
+    color:#fff;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+}
 
-        /* FEATURES GRID */
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin: 40px 0;
-        }
+.hero{
+    width:100%;
+    height:512px;
+    object-fit:cover;
+    object-position:center;
+    border-radius:10px;
+    margin-top:10px;
+}
 
-        .feature {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            padding: 12px 20px;
-            border-radius: 100px;
-            border: 1px solid rgba(236, 72, 153, 0.1);
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-align: center;
-            color: #4b5563;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
+.products{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
 
-        /* PRICING GRID */
-        .pricing {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 50px;
-            align-items: stretch; /* Ensures cards are equal height */
-        }
+.card{
+    min-height:320px; 
+}
 
-        .plan {
-            background: white;
-            border-radius: 24px;
-            padding: 40px 30px;
-            text-align: center;
-            position: relative;
-            transition: all 0.3s ease;
-            border: 1px solid #f1f5f9;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            flex-direction: column;
-        }
+.card{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:12px;
+    padding:16px;
+    transition:0.2s;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
 
-        .plan:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
+.card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 5px 15px rgba(0,0,0,0.08);
+}
 
-        .plan.popular {
-            border: 2px solid var(--primary);
-            background: linear-gradient(white, white) padding-box, 
-                        linear-gradient(45deg, #ec4899, #8b5cf6) border-box;
-        }
+.card img{
+    width:100%;
+    height:512px;   
+    object-fit:cover;
+    border-radius:10px;
+}
 
-        .plan.popular::before {
-            content: "MOST POPULAR";
-            position: absolute;
-            top: -14px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(90deg, #ec4899, #8b5cf6);
-            color: white;
-            padding: 4px 16px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
+.card h4{
+    font-size:16px;
+    margin:5px 0;
+}
 
-        .plan h3 {
-            font-size: 1.25rem;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-        }
+.price{
+    font-size:16px;
+}
+.price{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    font-weight:bold;
+}
 
-        .price {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: var(--text-main);
-            margin: 15px 0;
-        }
+.old{
+    text-decoration:line-through;
+    color:#888;
+    font-size:11px;
+}
 
-        .price span {
-            font-size: 1rem;
-            color: var(--text-muted);
-            font-weight: 400;
-        }
+.add{
+    width:100%;
+    padding:12px;
+    font-size:14px;
+    border-radius:8px;
+}
 
-        .plan ul {
-            list-style: none;
-            margin: 25px 0;
-            text-align: left;
-            flex-grow: 1; /* Pushes button to bottom */
-        }
+.add:hover{
+    opacity:0.9;
+}
 
-        .plan ul li {
-            margin-bottom: 12px;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+.add:active{
+    transform:scale(0.97);
+}
 
-        .plan ul li::before {
-            content: '✓';
-            color: #10b981;
-            font-weight: bold;
-        }
+.desc{
+    margin-top:20px;
+    background:#fff;
+    padding:15px;
+    border-radius:10px;
+    line-height:1.6;
+}
 
-        .razorpay-payment-button {
-            width: 100% !important;
-            background: var(--primary) !important;
-            border-radius: 12px !important;
-            padding: 14px !important;
-            font-size: 16px !important;
-            font-weight: 600 !important;
-            transition: 0.2s !important;
-            border: none !important;
-            color: white !important;
-            cursor: pointer;
-        }
+.checkout{
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    position:sticky;
+    top:20px;
+}
 
-        #modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
+.cart-empty{
+    text-align:center;
+    color:#888;
+    margin:20px 0;
+}
 
-        .modal {
-            background: white;
-            padding: 40px;
-            border-radius: 28px;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
+input{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border:1px solid #ddd;
+    border-radius:6px;
+}
 
-        .key-box {
-            margin: 20px 0;
-            padding: 16px;
-            background: #fdf2f8;
-            border: 1px dashed #ec4899;
-            font-family: 'Courier New', monospace;
-            font-size: 1.2rem;
-            color: #ec4899;
-            border-radius: 12px;
-            word-break: break-all;
-        }
+.pay{
+    width:100%;
+    background:var(--primary);
+    color:#fff;
+    padding:14px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    margin-top:10px;
+    transition:0.2s;
+}
 
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+.pay:disabled{
+    opacity:0.7;
+    cursor:not-allowed;
+}
 
-        .btn {
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-            text-align: center;
-        }
+/* LOGIN MODAL */
+#loginBox{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
 
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-dark { background: #1e293b; color: white; text-decoration: none; display: block; }
-        .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: var(--text-muted); }
+#loginBox > div{
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    width:90%;
+    max-width:320px;
+}
 
-        .btn:hover { opacity: 0.9; transform: scale(0.98); }
+/* MOBILE */
+@media (max-width:768px){
 
-    </style>
+    .container{
+        flex-direction:column;
+        padding:10px;
+    }
+
+    .header h2{
+        font-size:16px;
+    }
+
+    .checkout{
+        position:relative;
+        top:0;
+        margin-top:20px;
+    }
+
+    /* ✅ HERO FIX */
+    .hero{
+        height:420px;
+        border-radius:8px;
+    }
+
+    /* ✅ CARD FIX */
+    .card{
+        padding:12px;
+        min-height:auto;
+    }
+
+    /* ✅ IMAGE FIX (MOST IMPORTANT) */
+    .card img{
+        height:420px;
+        border-radius:8px;
+    }
+
+    /* ✅ TEXT BALANCE */
+    .card h4{
+        font-size:14px;
+    }
+
+    .price{
+        font-size:14px;
+    }
+
+    /* ✅ BUTTON FIX */
+    .add{
+        padding:10px;
+        font-size:13px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-<div class="hero">
-    <h1>Meesho AI Automation</h1>
-    <p>The all-in-one toolkit for smart sellers. Automate listings, optimize descriptions, and scale your business effortlessly.</p>
+<!-- LOGIN -->
+<div id="loginBox">
+  <div>
+    <h3>Login</h3>
+    <input id="loginEmail" placeholder="Enter Email">
+    <button class="pay" onclick="doLogin()">Continue</button>
+  </div>
 </div>
 
 <div class="container">
-    <div class="features">
-        <div class="feature">✨ Auto Listing</div>
-        <div class="feature">✍️ AI Descriptions</div>
-        <div class="feature">📊 Bulk Upload</div>
-        <div class="feature">📈 High ROI</div>
-        <div class="feature">🛡️ Secure Key</div>
-    </div>
 
-    <div class="pricing">
-        <div class="plan">
-            <h3>Starter</h3>
-            <div class="price">₹499<span>/month</span></div>
-            <ul>
-                <li>Unlimited AI Generation</li>
-                <li>Multi-device Support</li>
-                <li>Priority Updates</li>
-                <li>Bulk Listing Tools</li>
-                <li>Email Support</li>
-            </ul>
-            <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_SgwBmOFvtCB8D4" async></script></form>
-        </div>
+<div class="left">
 
-        <div class="plan popular">
-            <h3>Lifetime Access</h3>
-            <div class="price">₹1299<span>/one-time</span></div>
-            <ul>
-                <li>Unlimited AI Generation</li>
-                <li>Multi-device Support</li>
-                <li>Priority Updates</li>
-                <li>Bulk Listing Tools</li>
-                <li>24/7 Priority Support</li>
-            </ul>
-            <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_SgwDfqqq3HPvUy" async></script></form>
-        </div>
-
-        <div class="plan">
-            <h3>Pro Plan</h3>
-            <div class="price">₹799<span>/3 months</span></div>
-            <ul>
-                <li>Unlimited AI Generation</li>
-                <li>Multi-device Support</li>
-                <li>Priority Updates</li>
-                <li>Bulk Listing Tools</li>
-                <li>Premium Support</li>
-            </ul>
-            <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_SgwCviPihVNJgF" async></script></form>
-        </div>
-    </div>
+<div class="header">
+    <h2>MEESHO AI AUTO LISTING TOOL</h2>
+    <div class="signin" onclick="login()">Sign in</div>
 </div>
 
-<div id="modal-overlay">
-    <div class="modal">
-        <div style="font-size: 3rem;">🎉</div>
-        <h2>Success!</h2>
-        <p style="color: var(--text-muted); margin-bottom: 10px;">Your license key is ready</p>
-        
-        <div id="key-display" class="key-box">Generating...</div>
+<img src="https://raw.githubusercontent.com/deepverma0/Meesho-Ai-tool-2-Server-modules-/7a8b1c68a4b7bd56f92cde79632c5d90cd9bdffc/public/asper.jpeg" class="hero">
 
-        <div class="btn-group">
-            <button class="btn btn-primary" onclick="copyKey()">Copy License Key</button>
-            <a href="/extension.zip" class="btn btn-dark" download>Download Extension</a>
-            <button class="btn btn-outline" onclick="closeModal()">Maybe Later</button>
-        </div>
-        
-        <p style="margin-top:15px; font-size:12px; color: var(--text-muted)">
-            We've also sent a backup copy to your email.
-        </p>
+<div class="products">
+
+<!-- LIFETIME -->
+<div class="card" style="border:2px solid #ff3f8e; position:relative;">
+    <div style="position:absolute;top:-10px;left:10px;background:#ff3f8e;color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;">
+    🔥 MOST POPULAR
     </div>
+
+    <img src="https://raw.githubusercontent.com/deepverma0/Meesho-Ai-tool-2-Server-modules-/7a8b1c68a4b7bd56f92cde79632c5d90cd9bdffc/public/asper.jpeg">
+    <h4>LIFETIME ACCESS 👑</h4>
+    <div class="price">₹1299 <span class="old">₹1999</span></div>
+    <button class="add" onclick="addItem('lifetime',1299)">Add to cart</button>
+</div>
+
+<!-- 3 MONTH -->
+<div class="card">
+    <img src="https://raw.githubusercontent.com/deepverma0/Meesho-Ai-tool-2-Server-modules-/7a8b1c68a4b7bd56f92cde79632c5d90cd9bdffc/public/asper.jpeg">
+    <h4>3 MONTH ACCESS</h4>
+    <div class="price">₹799 <span class="old">₹1299</span></div>
+    <button class="add" onclick="addItem('3month',799)">Add to cart</button>
+</div>
+
+<!-- 1 MONTH -->
+<div class="card">
+    <img src="https://raw.githubusercontent.com/deepverma0/Meesho-Ai-tool-2-Server-modules-/7a8b1c68a4b7bd56f92cde79632c5d90cd9bdffc/public/asper.jpeg">
+    <h4>1 MONTH ACCESS</h4>
+    <div class="price">₹499 <span class="old">₹799</span></div>
+    <button class="add" onclick="addItem('1month',499)">Add to cart</button>
+</div>
+
+</div>
+
+<div class="desc">
+<h3>Description</h3>
+
+<p><b>⚡ Meesho AI Auto Listing Tool (Upgraded)</b></p>
+<p>Create complete Meesho listings automatically using AI. No manual work needed.</p>
+
+<h4>🔹 Features:</h4>
+<ul>
+<li>Auto Title Generation</li>
+<li>Auto Description</li>
+<li>Auto Category</li>
+<li>Auto Tags</li>
+<li>Auto Price Suggestion</li>
+<li>One Click Listing</li>
+</ul>
+
+<h4>🔹 Benefits:</h4>
+<ul>
+<li>Saves Time</li>
+<li>No Skills Needed</li>
+<li>Faster Listings</li>
+</ul>
+
+<p><b>Contact:</b><br>deepanshuv010@gmail.com</p>
+</div>
+
+</div>
+
+<div class="right">
+
+<div class="checkout">
+
+<h3>Cart</h3>
+<div id="cart" class="cart-empty">Your cart is empty!</div>
+
+<h4>Checkout</h4>
+<input placeholder="Email">
+<input placeholder="Phone">
+
+<h4>Total: ₹<span id="total">0</span></h4>
+
+<button class="pay" id="payBtn" onclick="showPay()">Buy now →</button>
+
+<div id="payNowBox"></div>
+
+</div>
+
+</div>
+
 </div>
 
 <script>
-    const API = "https://grateful-wonder-production-20e4.up.railway.app";
-    const params = new URLSearchParams(window.location.search);
+let cart=[];
 
-    if(params.get("success")){
-        openPopup();
-        fetchKeyWithRetry();
+// LOGIN
+function login(){
+    document.getElementById("loginBox").style.display="flex";
+}
+
+function doLogin(){
+    const email = document.getElementById("loginEmail").value;
+    if(!email){ alert("Enter email"); return; }
+
+    localStorage.setItem("user", email);
+    document.getElementById("loginBox").style.display="none";
+    updateUser();
+}
+
+function updateUser(){
+    const user = localStorage.getItem("user");
+    const btn = document.querySelector(".signin");
+
+    if(user){
+        btn.innerHTML = user + " (Logout)";
+        btn.onclick = logout;
+    }
+}
+
+function logout(){
+    localStorage.removeItem("user");
+    location.reload();
+}
+
+updateUser();
+
+
+// PAYMENT
+function showPay(){
+    if(cart.length===0){
+        alert("Select plan first");
+        return;
     }
 
-    function openPopup(){
-        document.getElementById("modal-overlay").style.display="flex";
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#ec4899', '#8b5cf6', '#ffffff']
-        });
+    if(!localStorage.getItem("user")){
+        alert("Please login first");
+        return;
     }
 
-    async function fetchKeyWithRetry(){
-        const paymentId = params.get("payment_id");
-        const display = document.getElementById("key-display");
+    const btn = document.getElementById("payBtn");
+    const box = document.getElementById("payNowBox");
 
-        if(!paymentId){
-            display.innerText="Check Email";
-            return;
-        }
+    btn.innerText = "Loading...";
+    btn.disabled = true;
 
-        try {
-            const res = await fetch(`${API}/generate-key-from-payment`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paymentId })
-            });
-            const data = await res.json();
-            display.innerText = (data.success && data.key) ? data.key : "Check Email";
-        } catch (err) {
-            display.innerText = "Error - Refresh";
-        }
-    }
+    const plan = cart[0].plan;
 
-    function copyKey(){
-        const keyText = document.getElementById("key-display").innerText;
-        navigator.clipboard.writeText(keyText);
-        const btn = event.target;
-        btn.innerText = "Copied!";
-        setTimeout(() => btn.innerText = "Copy License Key", 2000);
-    }
+    box.innerHTML="";
 
-    function closeModal(){
-        document.getElementById("modal-overlay").style.display="none";
-    }
+    let id="";
+    if(plan==="lifetime") id="pl_SgwDfqqq3HPvUy";
+    if(plan==="3month") id="pl_SgwCviPihVNJgF";
+    if(plan==="1month") id="pl_SgwBmOFvtCB8D4";
+
+    const form=document.createElement("form");
+
+    const script=document.createElement("script");
+    script.src="https://checkout.razorpay.com/v1/payment-button.js";
+    script.setAttribute("data-payment_button_id",id);
+    script.async=true;
+
+    form.appendChild(script);
+    box.appendChild(form);
+
+    setTimeout(()=>{
+        btn.innerText = "Pay Now ↓";
+        btn.disabled = false;
+    },800);
+}
+function addItem(plan,price){
+    cart=[{plan,price}];
+
+    document.getElementById("cart").innerHTML =
+        plan.toUpperCase()+" - ₹"+price;
+
+    document.getElementById("total").innerText=price;
+
+    document.getElementById("payNowBox").innerHTML="";
+
+    // ✅ CHANGE BUTTON TO PAY NOW
+    const btn = document.getElementById("payBtn");
+    btn.innerText = "Pay Now ↓";
+
+    // ✅ AUTO SCROLL
+    document.querySelector(".checkout").scrollIntoView({
+        behavior: "smooth"
+    });
+}
 </script>
 
 </body>
