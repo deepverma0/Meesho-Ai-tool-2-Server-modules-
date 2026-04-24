@@ -315,13 +315,8 @@
     }
 
     function showPay(){
-    if(cart.length===0){
+    if(!cart || cart.length===0){
         alert("Select plan first");
-        return;
-    }
-
-    if(!localStorage.getItem("user")){
-        alert("Please login first");
         return;
     }
 
@@ -355,6 +350,7 @@
         btn.disabled = false;
     },800);
 }
+    
 </script>
 
 </body>
